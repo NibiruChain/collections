@@ -19,6 +19,8 @@ var (
 	Uint64KeyEncoder KeyEncoder[uint64] = uint64Key{}
 	// ValAddressKeyEncoder can be used to encode sdk.ValAddress keys.
 	ValAddressKeyEncoder KeyEncoder[sdk.ValAddress] = valAddressKeyEncoder{}
+	// ConsAddressKeyEncoder can be used to encode sdk.ConsAddress keys.
+	ConsAddressKeyEncoder KeyEncoder[sdk.ConsAddress] = consAddressKeyEncoder{}
 )
 
 type stringKey struct{}
@@ -99,3 +101,18 @@ func validString(s string) error {
 	}
 	return nil
 }
+
+type consAddressKeyEncoder struct{}
+
+func (consAddressKeyEncoder) Encode(key sdk.ConsAddress) []byte {
+	return StringKeyEncoder.Encode(key.String())
+}
+func (consAddressKeyEncoder) Decode(b []byte) (int, sdk.ConsAddress) {
+	r, s := StringKeyEncoder.Decode(b)
+	consAddr, err := sdk.ConsAddressFromBech32(s)
+	if err != nil {
+		panic(err)
+	}
+	return r, consAddr
+}
+func (consAddressKeyEncoder) Stringify(key sdk.ConsAddress) string { return key.String() }

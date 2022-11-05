@@ -98,6 +98,21 @@ func (i IndexedMap[PK, V, I]) Iterate(ctx sdk.Context, rng Range[PK]) Iterator[P
 	return i.m.Iterate(ctx, rng)
 }
 
+// Collect collects all the object from the provided IndexerIterator.
+// Panics if PK records given by the iter are not in the store.
+func (i IndexedMap[PK, V, I]) Collect(ctx sdk.Context, iter interface{ PrimaryKeys() []PK }) []V {
+	pks := iter.PrimaryKeys()
+	vs := make([]V, len(pks))
+	for index, pk := range pks {
+		v, err := i.Get(ctx, pk)
+		if err != nil {
+			panic(err)
+		}
+		vs[index] = v
+	}
+	return vs
+}
+
 func (i IndexedMap[PK, V, I]) index(ctx sdk.Context, key PK, v V) {
 	for _, indexer := range i.Indexes.IndexerList() {
 		indexer.Insert(ctx, key, v)

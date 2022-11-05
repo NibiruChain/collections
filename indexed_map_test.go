@@ -41,6 +41,11 @@ func TestIndexedMap(t *testing.T) {
 	res := m.Indexes.City.ExactMatch(ctx, "milan").PrimaryKeys()
 	require.Equal(t, []uint64{0, 2}, res)
 
+	// collect
+	iter := m.Indexes.City.ExactMatch(ctx, "milan")
+	values := m.Collect(ctx, iter)
+	require.Equal(t, []person{{ID: 0, City: "milan"}, {ID: 2, City: "milan"}}, values)
+
 	// once deleted, it's removed from indexes
 	err := m.Delete(ctx, 0)
 	require.NoError(t, err)
