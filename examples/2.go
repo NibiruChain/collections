@@ -41,3 +41,11 @@ func (k StakingKeeper) GetValidatorDelegations(ctx sdk.Context, val sdk.ValAddre
 
 	return k.Delegations.Iterate(ctx, rng).Values()
 }
+
+func (k StakingKeeper) GetValidatorDelegationsBetween(ctx sdk.Context, val sdk.ValAddress, start sdk.AccAddress, end sdk.AccAddress) []types.Delegation {
+	rng := collections.PairRange[sdk.ValAddress, sdk.AccAddress]{}.
+		Prefix(val). // gets all the keys starting with val [it's prefix safe]
+		StartInclusive(start).
+		EndInclusive(end)
+	return k.Delegations.Iterate(ctx, rng).Values()
+}
