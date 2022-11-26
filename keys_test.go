@@ -15,7 +15,7 @@ import (
 
 func TestUint64(t *testing.T) {
 	t.Run("bijectivity", func(t *testing.T) {
-		assertBijective[uint64](t, Uint64KeyEncoder, uint64(0x0123456789ABCDEF))
+		assertBijective(t, Uint64KeyEncoder, uint64(0x0123456789ABCDEF))
 	})
 
 	t.Run("empty", func(t *testing.T) {
@@ -87,5 +87,15 @@ func TestTimeKey(t *testing.T) {
 func TestValAddressKey(t *testing.T) {
 	t.Run("bijective", func(t *testing.T) {
 		assertBijective(t, ValAddressKeyEncoder, sdk.ValAddress(secp256k1.GenPrivKey().PubKey().Address()))
+	})
+}
+
+func TestSdkDecKey(t *testing.T) {
+	t.Run("bijective", func(t *testing.T) {
+		assertBijective(t, SdkDecKeyEncoder, sdk.NewDec(123456789))
+	})
+
+	t.Run("zero dec", func(t *testing.T) {
+		assertBijective(t, SdkDecKeyEncoder, sdk.ZeroDec())
 	})
 }
