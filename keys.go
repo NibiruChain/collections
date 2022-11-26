@@ -21,6 +21,8 @@ var (
 	ValAddressKeyEncoder KeyEncoder[sdk.ValAddress] = valAddressKeyEncoder{}
 	// ConsAddressKeyEncoder can be used to encode sdk.ConsAddress keys.
 	ConsAddressKeyEncoder KeyEncoder[sdk.ConsAddress] = consAddressKeyEncoder{}
+	// SdkDecKeyEncoder can be used to encode sdk.Dec keys.
+	SdkDecKeyEncoder KeyEncoder[sdk.Dec] = sdkDecKeyEncoder{}
 )
 
 type stringKey struct{}
@@ -116,3 +118,24 @@ func (consAddressKeyEncoder) Decode(b []byte) (int, sdk.ConsAddress) {
 	return r, consAddr
 }
 func (consAddressKeyEncoder) Stringify(key sdk.ConsAddress) string { return key.String() }
+
+type sdkDecKeyEncoder struct{}
+
+func (sdkDecKeyEncoder) Stringify(key sdk.Dec) string { return key.String() }
+
+func (sdkDecKeyEncoder) Encode(key sdk.Dec) []byte {
+	bz, err := key.Marshal()
+	if err != nil {
+		panic(fmt.Errorf("invalid DecKey: %w", err))
+	}
+	fmt.Println("sdkDecKeyEncoder.Encode", string(bz))
+	return bz
+}
+func (sdkDecKeyEncoder) Decode(b []byte) (int, sdk.Dec) {
+	var dec sdk.Dec
+	if err := dec.Unmarshal(b); err != nil {
+		panic(fmt.Errorf("invalid DecKey bytes: %w", err))
+	}
+
+	return len(b), dec
+}
