@@ -128,7 +128,6 @@ func (sdkDecKeyEncoder) Encode(key sdk.Dec) []byte {
 	if err != nil {
 		panic(fmt.Errorf("invalid DecKey: %w", err))
 	}
-	fmt.Println("sdkDecKeyEncoder.Encode", string(bz))
 	return bz
 }
 func (sdkDecKeyEncoder) Decode(b []byte) (int, sdk.Dec) {
