@@ -28,9 +28,13 @@ var (
 
 // testing sentinel errors
 var (
+	errInvalidKey = errors.New("collections: invalid key")
+
 	errInvalidStringKeySize       = errors.New("collections: invalid string key bytes buffer size")
 	errInvalidStringKeyNullChar   = errors.New("collections: invalid string key contains null character")
 	errInvalidStringKeyNoNullChar = errors.New("collections: invalid string key bytes buffer is not null terminated")
+
+	errInvalidUint64KeySize = errors.New("collections: invalid uint64 key bytes buffer size")
 )
 
 type stringKey struct{}
@@ -63,7 +67,7 @@ func (uint64Key) Encode(u uint64) ([]byte, error) {
 }
 func (uint64Key) Decode(b []byte) (int, uint64, error) {
 	if len(b) != 8 {
-		return 0, 0, fmt.Errorf("invalid uint64 key size")
+		return 0, 0, errInvalidUint64KeySize
 	}
 	return 8, sdk.BigEndianToUint64(b), nil
 }
@@ -75,7 +79,7 @@ func (timeKey) Encode(t time.Time) ([]byte, error) { return sdk.FormatTimeBytes(
 func (timeKey) Decode(b []byte) (int, time.Time, error) {
 	t, err := sdk.ParseTimeBytes(b)
 	if err != nil {
-		return 0, time.Time{}, err
+		return 0, time.Time{}, fmt.Errorf("%w: TimeKey: %s", errInvalidKey, err)
 	}
 	return len(b), t, nil
 }
@@ -89,7 +93,7 @@ func (accAddressKey) Encode(addr sdk.AccAddress) ([]byte, error) {
 func (accAddressKey) Decode(b []byte) (int, sdk.AccAddress, error) {
 	i, s, err := StringKeyEncoder.Decode(b)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, fmt.Errorf("%w: AccAddressKey", err)
 	}
 	return i, sdk.MustAccAddressFromBech32(s), nil
 }
@@ -102,11 +106,11 @@ func (v valAddressKeyEncoder) Encode(key sdk.ValAddress) ([]byte, error) {
 func (v valAddressKeyEncoder) Decode(b []byte) (int, sdk.ValAddress, error) {
 	r, s, err := StringKeyEncoder.Decode(b)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, fmt.Errorf("%w: ValAddressKey", err)
 	}
 	valAddr, err := sdk.ValAddressFromBech32(s)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, fmt.Errorf("%w: ValAddressKey: %s", errInvalidKey, err)
 	}
 	return r, valAddr, nil
 }
@@ -133,11 +137,11 @@ func (consAddressKeyEncoder) Encode(key sdk.ConsAddress) ([]byte, error) {
 func (consAddressKeyEncoder) Decode(b []byte) (int, sdk.ConsAddress, error) {
 	r, s, err := StringKeyEncoder.Decode(b)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, fmt.Errorf("%w: ConsAddressKey", err)
 	}
 	consAddr, err := sdk.ConsAddressFromBech32(s)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, fmt.Errorf("%w: ConsAddressKey: %s", errInvalidKey, err)
 	}
 	return r, consAddr, nil
 }
@@ -150,14 +154,14 @@ func (sdkDecKeyEncoder) Stringify(key sdk.Dec) string { return key.String() }
 func (sdkDecKeyEncoder) Encode(key sdk.Dec) ([]byte, error) {
 	bz, err := key.Marshal()
 	if err != nil {
-		return nil, fmt.Errorf("invalid DecKey: %w", err)
+		return nil, fmt.Errorf("%w: DecKey: %s", errInvalidKey, err)
 	}
 	return bz, nil
 }
 func (sdkDecKeyEncoder) Decode(b []byte) (int, sdk.Dec, error) {
 	var dec sdk.Dec
 	if err := dec.Unmarshal(b); err != nil {
-		return 0, dec, fmt.Errorf("invalid DecKey bytes: %w", err)
+		return 0, dec, fmt.Errorf("%w: DecKey bytes: %s", errInvalidKey, err)
 	}
 
 	return len(b), dec, nil
