@@ -9,8 +9,10 @@ import (
 )
 
 func assertBijective[T any](t *testing.T, encoder KeyEncoder[T], key T) {
-	encodedKey := encoder.Encode(key)
-	read, decodedKey := encoder.Decode(encodedKey)
+	encodedKey, err := encoder.Encode(key)
+	require.NoError(t, err)
+	read, decodedKey, err := encoder.Decode(encodedKey)
+	require.NoError(t, err)
 	require.Equal(t, len(encodedKey), read, "encoded key and read bytes must have same size")
 	require.Equal(t, key, decodedKey, "encoding and decoding produces different keys")
 }

@@ -14,26 +14,38 @@ func TestPairKeyEncoder(t *testing.T) {
 
 	t.Run("encode both - bijectivity", func(t *testing.T) {
 		key := Join("k1", "k2")
-		b := enc.Encode(key)
-		read, got := enc.Decode(b)
+		b, err := enc.Encode(key)
+		require.NoError(t, err)
+		read, got, err := enc.Decode(b)
+		require.NoError(t, err)
 		require.Equal(t, key, got)
 		require.Equal(t, len(b), read)
 	})
 
 	t.Run("encode partial - k1", func(t *testing.T) {
 		key := PairPrefix[string, string]("k1")
-		require.Equal(t, StringKeyEncoder.Encode("k1"), enc.Encode(key))
+		require.NotNil(t, key.k1)
+		k1Pair, err := enc.Encode(key)
+		require.NoError(t, err)
+		k1Raw, err := StringKeyEncoder.Encode(*key.k1)
+		require.NoError(t, err)
+		require.Equal(t, k1Pair, k1Raw)
 	})
 
 	t.Run("encode partial - k2", func(t *testing.T) {
 		key := PairSuffix[string, string]("k2")
-		require.Equal(t, StringKeyEncoder.Encode("k2"), enc.Encode(key))
+		require.NotNil(t, key.k2)
+		k2Pair, err := enc.Encode(key)
+		require.NoError(t, err)
+		k2Raw, err := StringKeyEncoder.Encode(*key.k2)
+		require.NoError(t, err)
+		require.Equal(t, k2Pair, k2Raw)
 	})
 
 	t.Run("empty panics", func(t *testing.T) {
-		require.Panics(t, func() {
-			enc.Encode(Pair[string, string]{})
-		})
+		_, err := enc.Encode(Pair[string, string]{})
+		require.ErrorIs(t, err, errEmptyPairKey)
+
 	})
 
 	t.Run("stringify both", func(t *testing.T) {

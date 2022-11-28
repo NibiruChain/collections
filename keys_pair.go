@@ -1,6 +1,14 @@
 package collections
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
+
+// testing sentinel errors
+var (
+	errEmptyPairKey = errors.New("collections: empty pair key")
+)
 
 // PairKeyEncoder creates a new KeyEncoder for Pair types, give the two key encoders for K1 and K2.
 func PairKeyEncoder[K1, K2 any](kc1 KeyEncoder[K1], kc2 KeyEncoder[K2]) KeyEncoder[Pair[K1, K2]] {
@@ -42,28 +50,42 @@ func (p pairKeyEncoder[K1, K2]) Stringify(key Pair[K1, K2]) string {
 // Encode encodes the Pair.
 // If both parts of the keys are present, then the byte version of K1 and K2 are joined together.
 // If only the first part is present then
-func (p pairKeyEncoder[K1, K2]) Encode(key Pair[K1, K2]) []byte {
+func (p pairKeyEncoder[K1, K2]) Encode(key Pair[K1, K2]) ([]byte, error) {
 	if key.k1 != nil && key.k2 != nil {
-		return append(p.kc1.Encode(*key.k1), p.kc2.Encode(*key.k2)...)
+		k1b, err := p.kc1.Encode(*key.k1)
+		if err != nil {
+			return nil, err
+		}
+		k2b, err := p.kc2.Encode(*key.k2)
+		if err != nil {
+			return nil, err
+		}
+		return append(k1b, k2b...), nil
 	} else if key.k1 != nil && key.k2 == nil {
 		return p.kc1.Encode(*key.k1)
 	} else if key.k1 == nil && key.k2 != nil {
 		return p.kc2.Encode(*key.k2)
 	} else {
-		panic("empty Pair key")
+		return nil, errEmptyPairKey
 	}
 }
 
 // Decode decodes the Pair. It assumes that the provided bytes contain both the K1 and K2 part.
-func (p pairKeyEncoder[K1, K2]) Decode(b []byte) (int, Pair[K1, K2]) {
+func (p pairKeyEncoder[K1, K2]) Decode(b []byte) (int, Pair[K1, K2], error) {
 	// NOTE(mercilex): is it always safe to assume that when we get a part
 	// of the key it's going to always contain the full key and not only a part?
-	i1, k1 := p.kc1.Decode(b)
-	i2, k2 := p.kc2.Decode(b[i1:])
+	i1, k1, err := p.kc1.Decode(b)
+	if err != nil {
+		return 0, Pair[K1, K2]{}, err
+	}
+	i2, k2, err := p.kc2.Decode(b[i1:])
+	if err != nil {
+		return 0, Pair[K1, K2]{}, err
+	}
 	return i1 + i2, Pair[K1, K2]{
 		k1: &k1,
 		k2: &k2,
-	}
+	}, nil
 }
 
 // Join returns a fully populated Pair

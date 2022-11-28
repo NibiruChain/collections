@@ -17,10 +17,10 @@ func (n Namespace) Prefix() []byte { return []byte{uint8(n)} }
 // by types that are capable of encoding and decoding collections keys.
 type KeyEncoder[T any] interface {
 	// Encode encodes the type T into bytes.
-	Encode(key T) []byte
+	Encode(key T) ([]byte, error)
 	// Decode decodes the given bytes back into T.
 	// And it also must return the bytes of the buffer which were read.
-	Decode(b []byte) (int, T)
+	Decode(b []byte) (int, T, error)
 	// Stringify returns a string representation of T.
 	Stringify(key T) string
 }

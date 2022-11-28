@@ -29,12 +29,20 @@ func NewMap[K, V any](sk sdk.StoreKey, namespace Namespace, kc KeyEncoder[K], vc
 }
 
 func (m Map[K, V]) Insert(ctx sdk.Context, k K, v V) {
+	keyBytes, err := m.kc.Encode(k)
+	if err != nil {
+		panic(err)
+	}
 	m.getStore(ctx).
-		Set(m.kc.Encode(k), m.vc.Encode(v))
+		Set(keyBytes, m.vc.Encode(v))
 }
 
 func (m Map[K, V]) Get(ctx sdk.Context, k K) (v V, err error) {
-	vBytes := m.getStore(ctx).Get(m.kc.Encode(k))
+	keyBytes, err := m.kc.Encode(k)
+	if err != nil {
+		panic(err)
+	}
+	vBytes := m.getStore(ctx).Get(keyBytes)
 	if vBytes == nil {
 		return v, fmt.Errorf("%w: '%s' with key %s", ErrNotFound, m.typeName, m.kc.Stringify(k))
 	}
@@ -52,7 +60,10 @@ func (m Map[K, V]) GetOr(ctx sdk.Context, key K, def V) (v V) {
 }
 
 func (m Map[K, V]) Delete(ctx sdk.Context, k K) error {
-	kBytes := m.kc.Encode(k)
+	kBytes, err := m.kc.Encode(k)
+	if err != nil {
+		panic(err)
+	}
 	store := m.getStore(ctx)
 	if !store.Has(kBytes) {
 		return fmt.Errorf("%w: '%s' with key %s", ErrNotFound, m.typeName, m.kc.Stringify(k))

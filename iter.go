@@ -106,14 +106,21 @@ func (r Range[K]) RangeValues() (prefix *K, start *Bound[K], end *Bound[K], orde
 // iteratorFromRange generates an Iterator instance, with the proper prefixing and ranging.
 func iteratorFromRange[K, V any](s sdk.KVStore, r Ranger[K], kc KeyEncoder[K], vc ValueEncoder[V]) Iterator[K, V] {
 	pfx, start, end, order := r.RangeValues()
+	var err error
 	var prefixBytes []byte
 	if pfx != nil {
-		prefixBytes = kc.Encode(*pfx)
+		prefixBytes, err = kc.Encode(*pfx)
+		if err != nil {
+			panic(err)
+		}
 		s = prefix.NewStore(s, prefixBytes)
 	}
 	var startBytes []byte // default is nil
 	if start != nil {
-		startBytes = kc.Encode(start.value)
+		startBytes, err = kc.Encode(start.value)
+		if err != nil {
+			panic(err)
+		}
 		// iterators are inclusive at start by default
 		// so if we want to make the iteration exclusive
 		// we extend by one byte.
@@ -123,7 +130,10 @@ func iteratorFromRange[K, V any](s sdk.KVStore, r Ranger[K], kc KeyEncoder[K], v
 	}
 	var endBytes []byte // default is nil
 	if end != nil {
-		endBytes = kc.Encode(end.value)
+		endBytes, err = kc.Encode(end.value)
+		if err != nil {
+			panic(err)
+		}
 		// iterators are exclusive at end by default
 		// so if we want to make the iteration
 		// inclusive we need to extend by one byte.
@@ -171,7 +181,10 @@ func (i Iterator[K, V]) Value() V {
 // Key returns the current sdk.Iterator decoded key.
 func (i Iterator[K, V]) Key() K {
 	rawKey := append(i.prefixBytes, i.iter.Key()...)
-	read, c := i.kc.Decode(rawKey)
+	read, c, err := i.kc.Decode(rawKey)
+	if err != nil {
+		panic(err)
+	}
 	if read != len(rawKey) {
 		panic(fmt.Sprintf("key decoder didn't fully consume the key: %T %x %d", i.kc, rawKey, read))
 	}
