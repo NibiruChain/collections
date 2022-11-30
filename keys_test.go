@@ -10,7 +10,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 func TestUint64(t *testing.T) {
@@ -79,8 +78,8 @@ func TestAccAddressKey(t *testing.T) {
 
 func TestTimeKey(t *testing.T) {
 	t.Run("bijective", func(t *testing.T) {
-		key := tmtime.Now()
-		assertBijective[time.Time](t, TimeKeyEncoder, key)
+		key := time.Now()
+		assertBijective[time.Time](t, TimeKeyEncoder, key.Round(0).UTC())
 	})
 }
 
