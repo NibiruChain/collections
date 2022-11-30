@@ -37,7 +37,7 @@ func (stringKey) Encode(s string) []byte {
 func (stringKey) Decode(b []byte) (int, string) {
 	l := len(b)
 	if l < 2 {
-		panic("invalid StringKey bytes")
+		panic("Invalid StringKey bytes. StringKey must be at least length 2.")
 	}
 	for i, c := range b {
 		if c == 0 {
