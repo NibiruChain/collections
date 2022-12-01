@@ -3,7 +3,6 @@ package examples
 import (
 	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
@@ -38,14 +37,4 @@ func (a accountIValueEncoder) Name() string {
 
 func NewAccountInterfaceEncoder(cdc codec.BinaryCodec) collections.ValueEncoder[authtypes.AccountI] {
 	return accountIValueEncoder{cdc: cdc}
-}
-
-type MyInterfaceKeeper struct {
-	Accounts collections.Map[sdk.AccAddress, authtypes.AccountI]
-}
-
-func NewInterfaceKeeper(sk sdk.StoreKey, cdc codec.BinaryCodec) MyInterfaceKeeper {
-	return MyInterfaceKeeper{
-		Accounts: collections.NewMap(sk, 0, collections.AccAddressKeyEncoder, NewAccountInterfaceEncoder(cdc)),
-	}
 }

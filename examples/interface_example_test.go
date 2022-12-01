@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -28,6 +29,16 @@ func deps() (sdk.StoreKey, sdk.Context, codec.BinaryCodec) {
 			WithMultiStore(ms).
 			WithGasMeter(sdk.NewGasMeter(1_000_000_000)),
 		codec.NewProtoCodec(ir)
+}
+
+type MyInterfaceKeeper struct {
+	Accounts collections.Map[sdk.AccAddress, authtypes.AccountI]
+}
+
+func NewInterfaceKeeper(sk sdk.StoreKey, cdc codec.BinaryCodec) MyInterfaceKeeper {
+	return MyInterfaceKeeper{
+		Accounts: collections.NewMap(sk, 0, collections.AccAddressKeyEncoder, NewAccountInterfaceEncoder(cdc)),
+	}
 }
 
 func Test_something(t *testing.T) {
