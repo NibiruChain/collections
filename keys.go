@@ -37,14 +37,16 @@ func (stringKey) Encode(s string) []byte {
 func (stringKey) Decode(b []byte) (int, string) {
 	l := len(b)
 	if l < 2 {
-		panic("invalid StringKey bytes")
+		panic(fmt.Errorf(
+			"invalid StringKey bytes. StringKey must be at least length 2. %s",
+			HumanizeBytes(b)))
 	}
 	for i, c := range b {
 		if c == 0 {
 			return i + 1, string(b[:i])
 		}
 	}
-	panic(fmt.Errorf("string is not null terminated: %s", b))
+	panic(fmt.Errorf("string is not null terminated: %s %s", b, HumanizeBytes(b)))
 }
 
 type uint64Key struct{}
@@ -60,7 +62,7 @@ func (timeKey) Encode(t time.Time) []byte    { return sdk.FormatTimeBytes(t) }
 func (timeKey) Decode(b []byte) (int, time.Time) {
 	t, err := sdk.ParseTimeBytes(b)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("%w %s", err, HumanizeBytes(b)))
 	}
 	return len(b), t
 }
@@ -85,7 +87,7 @@ func (v valAddressKeyEncoder) Decode(b []byte) (int, sdk.ValAddress) {
 	r, s := StringKeyEncoder.Decode(b)
 	valAddr, err := sdk.ValAddressFromBech32(s)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("%w %s", err, HumanizeBytes(b)))
 	}
 	return r, valAddr
 }
@@ -113,7 +115,7 @@ func (consAddressKeyEncoder) Decode(b []byte) (int, sdk.ConsAddress) {
 	r, s := StringKeyEncoder.Decode(b)
 	consAddr, err := sdk.ConsAddressFromBech32(s)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("%w %s", err, HumanizeBytes(b)))
 	}
 	return r, consAddr
 }
@@ -126,15 +128,37 @@ func (sdkDecKeyEncoder) Stringify(key sdk.Dec) string { return key.String() }
 func (sdkDecKeyEncoder) Encode(key sdk.Dec) []byte {
 	bz, err := key.Marshal()
 	if err != nil {
-		panic(fmt.Errorf("invalid DecKey: %w", err))
+		panic(fmt.Errorf("invalid DecKey: %w %s", err, HumanizeBytes(bz)))
 	}
 	return bz
 }
 func (sdkDecKeyEncoder) Decode(b []byte) (int, sdk.Dec) {
 	var dec sdk.Dec
 	if err := dec.Unmarshal(b); err != nil {
-		panic(fmt.Errorf("invalid DecKey bytes: %w", err))
+		panic(fmt.Errorf("invalid DecKey bytes: %w %s", err, HumanizeBytes(b)))
 	}
 
 	return len(b), dec
+}
+
+// HumanizeBytes is a shorthand function for converting a slice of bytes ([]byte)
+// into to hexadecimal string with a short descriptor. This function is meant to
+// make error messages more readable since the bytes will be reproducable.
+//
+// For example,
+// ```go
+// import "encoding/hex"
+// import "fmt"
+//
+// // When logging the hex string...
+// bz := []byte("ABC€日本語")
+// bytesAsHex := fmt.Sprintf("%x", bz) // 414243e282ace697a5e69cace8aa9e
+//
+// // Later when debugging using the logs, the original bytes can be found
+// // easily using the 'bytesAsHex'
+// bz, _ := hex.DecodeString("414243e282ace697a5e69cace8aa9e")
+// fmt.Println(string(bz)) // ABC€日本語
+// ````
+func HumanizeBytes(bz []byte) string {
+	return fmt.Sprintf("\nbytesAsHex: %x", bz)
 }

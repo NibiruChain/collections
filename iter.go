@@ -139,7 +139,7 @@ func iteratorFromRange[K, V any](s sdk.KVStore, r Ranger[K], kc KeyEncoder[K], v
 	case OrderDescending:
 		iter = s.ReverseIterator(startBytes, endBytes)
 	default:
-		panic("unrecognized Order")
+		panic(fmt.Errorf("unrecognized Order: %v", order))
 	}
 
 	return Iterator[K, V]{

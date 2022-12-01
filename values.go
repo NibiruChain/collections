@@ -1,6 +1,8 @@
 package collections
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
@@ -45,7 +47,7 @@ type decValue struct{}
 func (d decValue) Encode(value sdk.Dec) []byte {
 	b, err := value.Marshal()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("%w %s", err, HumanizeBytes(b)))
 	}
 	return b
 }
@@ -54,7 +56,7 @@ func (d decValue) Decode(b []byte) sdk.Dec {
 	dec := new(sdk.Dec)
 	err := dec.Unmarshal(b)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("%w %s", err, HumanizeBytes(b)))
 	}
 	return *dec
 }
