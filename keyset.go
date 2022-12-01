@@ -68,7 +68,7 @@ func (s setObject) Encode(_ setObject) []byte { return []byte{} }
 
 func (s setObject) Decode(b []byte) setObject {
 	if !bytes.Equal(b, []byte{}) {
-		panic(fmt.Sprintf("invalid bytes: %s", b))
+		panic(fmt.Sprintf("invalid bytes: %s %s", b, HumanizeBytes(b)))
 	}
 	return setObject{}
 }
