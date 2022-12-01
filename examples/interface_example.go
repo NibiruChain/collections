@@ -3,14 +3,14 @@ package examples
 import (
 	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/gogo/protobuf/proto"
 )
 
-type accountIValueEncoder struct {
+type interfaceValueEncoder[T proto.Message] struct {
 	cdc codec.BinaryCodec
 }
 
-func (a accountIValueEncoder) Encode(value authtypes.AccountI) []byte {
+func (a interfaceValueEncoder[T]) Encode(value T) []byte {
 	accountAny, err := a.cdc.MarshalInterface(value)
 	if err != nil {
 		panic(err)
@@ -18,8 +18,8 @@ func (a accountIValueEncoder) Encode(value authtypes.AccountI) []byte {
 	return accountAny
 }
 
-func (a accountIValueEncoder) Decode(b []byte) authtypes.AccountI {
-	var acc authtypes.AccountI
+func (a interfaceValueEncoder[T]) Decode(b []byte) T {
+	var acc T
 	err := a.cdc.UnmarshalInterface(b, &acc)
 	if err != nil {
 		panic(err)
@@ -27,14 +27,14 @@ func (a accountIValueEncoder) Decode(b []byte) authtypes.AccountI {
 	return acc
 }
 
-func (a accountIValueEncoder) Stringify(value authtypes.AccountI) string {
+func (a interfaceValueEncoder[T]) Stringify(value T) string {
 	return value.String()
 }
 
-func (a accountIValueEncoder) Name() string {
+func (a interfaceValueEncoder[T]) Name() string {
 	return "auth.AccountInterface"
 }
 
-func NewAccountInterfaceEncoder(cdc codec.BinaryCodec) collections.ValueEncoder[authtypes.AccountI] {
-	return accountIValueEncoder{cdc: cdc}
+func NewInterfaceValueEncoder[T proto.Message](cdc codec.BinaryCodec) collections.ValueEncoder[T] {
+	return interfaceValueEncoder[T]{cdc: cdc}
 }

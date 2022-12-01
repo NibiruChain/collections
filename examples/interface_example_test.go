@@ -37,7 +37,7 @@ type MyInterfaceKeeper struct {
 
 func NewInterfaceKeeper(sk sdk.StoreKey, cdc codec.BinaryCodec) MyInterfaceKeeper {
 	return MyInterfaceKeeper{
-		Accounts: collections.NewMap(sk, 0, collections.AccAddressKeyEncoder, NewAccountInterfaceEncoder(cdc)),
+		Accounts: collections.NewMap(sk, 0, collections.AccAddressKeyEncoder, NewInterfaceValueEncoder[authtypes.AccountI](cdc)),
 	}
 }
 
