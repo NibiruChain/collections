@@ -8,7 +8,7 @@ import (
 
 func TestSequence(t *testing.T) {
 	sk, ctx, _ := deps()
-	s := NewSequence(sk, 0)
+	s := NewSequence(sk, 0, "seq")
 	// assert initial start number
 	require.Equal(t, DefaultSequenceStart, s.Peek(ctx))
 	// assert next reports the default sequence start number

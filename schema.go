@@ -2,25 +2,26 @@ package collections
 
 import (
 	"fmt"
+	"regexp"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type Schema struct {
-	storeKey   sdk.StoreKey
-	descriptor *SchemaDescriptor
-	namespaces map[Namespace]bool
-	names      map[string]bool
+	storeKey            sdk.StoreKey
+	descriptor          *SchemaDescriptor
+	collectionsByPrefix map[string]Collection
+	collectionsByName   map[string]Collection
 }
 
 type SchemaDescriptor struct {
-	Maps      []MapDescriptor      `json:"maps,omitempty"`
-	Sequences []SequenceDescriptor `json:"sequences,omitempty"`
-	Items     []ItemDescriptor     `json:"items,omitempty"`
+	Collections []CollectionDescriptor `json:"collections,omitempty"`
 }
 
-type MapDescriptor struct {
+type CollectionDescriptor struct {
+	Type   string          `json:"type"`
 	Prefix []byte          `json:"prefix"`
+	Name   string          `json:"name"`
 	Key    KeyDescriptor   `json:"key"`
 	Value  ValueDescriptor `json:"value"`
 }
@@ -48,10 +49,10 @@ type ItemDescriptor struct {
 
 func NewSchema(storeKey sdk.StoreKey) Schema {
 	return Schema{
-		storeKey:   storeKey,
-		descriptor: &SchemaDescriptor{},
-		namespaces: map[Namespace]bool{},
-		names:      map[string]bool{},
+		storeKey:            storeKey,
+		descriptor:          &SchemaDescriptor{},
+		collectionsByPrefix: map[string]Collection{},
+		collectionsByName:   map[string]Collection{},
 	}
 }
 
@@ -59,19 +60,26 @@ func (s Schema) Descriptor() SchemaDescriptor {
 	return *s.descriptor
 }
 
-func (s Schema) ensureUniqueNamespace(namespace Namespace) {
-	if s.namespaces[namespace] {
-		panic(fmt.Errorf("namespace %d already taken within schema", namespace))
+func (s Schema) addCollection(collection Collection) {
+	desc := collection.Descriptor()
+	prefix := desc.Prefix
+	name := desc.Name
+
+	if _, ok := s.collectionsByPrefix[string(prefix)]; ok {
+		panic(fmt.Errorf("prefix %v already taken within schema", desc.Prefix))
 	}
 
-	s.namespaces[namespace] = true
-}
-
-func (s Schema) ensureUniqueName(name string) {
-	// TODO valid name format
-	if s.names[name] {
-		panic(fmt.Errorf("name %d already taken within schema", name))
+	if _, ok := s.collectionsByName[name]; ok {
+		panic(fmt.Errorf("prefix %d already taken within schema", name))
 	}
 
-	s.names[name] = true
+	if !nameRegex.MatchString(name) {
+		panic(fmt.Errorf("name must match regex %s, got %s", nameRegex.String(), name))
+	}
+
+	s.collectionsByPrefix[string(prefix)] = collection
+	s.collectionsByName[name] = collection
+	s.descriptor.Collections = append(s.descriptor.Collections, desc)
 }
+
+var nameRegex = regexp.MustCompile("^[A-Za-z][A-Za-z0-9_]*$")

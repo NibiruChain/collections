@@ -23,7 +23,7 @@ func TestIndexedMap(t *testing.T) {
 	sk, ctx, _ := deps()
 	m := NewIndexedMap[uint64, person, indexes](
 		sk, 0,
-		Uint64KeyEncoder, jsonValue[person]{},
+		"id", Uint64KeyEncoder, "person", jsonValue[person]{},
 		indexes{
 			City: NewMultiIndex[string, uint64, person](sk, 1,
 				StringKeyEncoder, Uint64KeyEncoder,

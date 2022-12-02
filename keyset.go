@@ -16,8 +16,9 @@ type KeySet[K any] Map[K, setObject]
 type KeySetIterator[K any] Iterator[K, setObject]
 
 // NewKeySet instantiates a new KeySet.
-func NewKeySet[K any](sk sdk.StoreKey, namespace Namespace, keyEncoder KeyEncoder[K]) KeySet[K] {
-	return (KeySet[K])(NewMap[K, setObject](sk, namespace, keyEncoder, setObject{}))
+func NewKeySet[K any](sk Schema, prefix Prefix, name string, keyEncoder KeyEncoder[K]) KeySet[K] {
+	ks := (KeySet[K])(newMap[K, setObject](sk.storeKey, prefix, "", keyEncoder, name, setObject{}))
+	return ks
 }
 
 // Has reports whether the key K is present or not in the set.
@@ -63,6 +64,10 @@ func (s KeySetIterator[K]) Keys() []K { return (Iterator[K, setObject])(s).Keys(
 // setObject represents a noop object used for sets,
 // it also implements the ValueEncoder interface for itself.
 type setObject struct{}
+
+func (s setObject) Type() string {
+	return fmt.Sprintf("sdk/KeySet")
+}
 
 func (s setObject) Encode(_ setObject) []byte { return []byte{} }
 

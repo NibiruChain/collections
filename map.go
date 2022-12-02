@@ -14,31 +14,23 @@ type Map[K, V any] struct {
 	prefix []byte
 	sk     sdk.StoreKey
 
+	keyName  string
+	name     string
 	typeName string
 }
 
-func NewMap[K, V any](schema Schema, namespace Namespace,
+func NewMap[K, V any](schema Schema, namespace Prefix,
 	keyName string, kc KeyEncoder[K],
 	valueName string, vc ValueEncoder[V]) Map[K, V] {
-	schema.ensureUniqueNamespace(namespace)
-	// TODO schema.ensureUniqueName(valueName)
-	schema.descriptor.Maps = append(schema.descriptor.Maps, MapDescriptor{
-		Prefix: namespace.Prefix(),
-		Key: KeyDescriptor{
-			Name: keyName, // TODO valid name format
-			Type: kc.Type(),
-		},
-		Value: ValueDescriptor{
-			Name: valueName, // TODO valid name format
-			Type: vc.Type(),
-		},
-	})
-
-	return newMap(schema.storeKey, namespace, kc, vc)
+	m := newMap(schema.storeKey, namespace, keyName, kc, valueName, vc)
+	schema.addCollection(m)
+	return m
 }
 
-func newMap[K, V any](sk sdk.StoreKey, namespace Namespace,
+func newMap[K, V any](sk sdk.StoreKey, namespace Prefix,
+	keyName string,
 	kc KeyEncoder[K],
+	valueName string,
 	vc ValueEncoder[V]) Map[K, V] {
 	return Map[K, V]{
 		kc:     kc,
@@ -47,6 +39,8 @@ func newMap[K, V any](sk sdk.StoreKey, namespace Namespace,
 		sk:     sk,
 		//nolint
 		typeName: vc.(ValueEncoder[V]).Type(), // go1.19 compiler bug
+		name:     valueName,
+		keyName:  keyName,
 	}
 }
 
@@ -90,4 +84,20 @@ func (m Map[K, V]) Iterate(ctx sdk.Context, rng Ranger[K]) Iterator[K, V] {
 
 func (m Map[K, V]) getStore(ctx sdk.Context) sdk.KVStore {
 	return prefix.NewStore(ctx.KVStore(m.sk), m.prefix)
+}
+
+func (m Map[K, V]) Descriptor() CollectionDescriptor {
+	return CollectionDescriptor{
+		Type:   "map",
+		Prefix: m.prefix,
+		Name:   m.name,
+		Key: KeyDescriptor{
+			Name: m.keyName,
+			Type: m.kc.Type(),
+		},
+		Value: ValueDescriptor{
+			Name: m.name,
+			Type: m.vc.Type(),
+		},
+	}
 }

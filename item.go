@@ -8,19 +8,14 @@ import (
 var itemKey uint64 = 0
 
 // NewItem instantiates a new Item instance.
-func NewItem[V any](schema Schema, namespace Namespace, name string, valueEncoder ValueEncoder[V]) Item[V] {
-	schema.ensureUniqueNamespace(namespace)
-	schema.ensureUniqueName(name)
-	schema.descriptor.Items = append(schema.descriptor.Items, ItemDescriptor{
-		Prefix: namespace.Prefix(),
-		Name:   name,
-		Type:   valueEncoder.Type(),
-	})
-	return newItem(schema.storeKey, namespace, valueEncoder)
+func NewItem[V any](schema Schema, namespace Prefix, name string, valueEncoder ValueEncoder[V]) Item[V] {
+	item := newItem(schema.storeKey, namespace, name, valueEncoder)
+	schema.addCollection(item)
+	return item
 }
 
-func newItem[V any](sk sdk.StoreKey, namespace Namespace, valueEncoder ValueEncoder[V]) Item[V] {
-	return (Item[V])(newMap[uint64, V](sk, namespace, uint64Key{}, valueEncoder))
+func newItem[V any](sk sdk.StoreKey, namespace Prefix, name string, valueEncoder ValueEncoder[V]) Item[V] {
+	return (Item[V])(newMap[uint64, V](sk, namespace, "", uint64Key{}, name, valueEncoder))
 }
 
 // Item represents a state object which will always have one instance
@@ -32,6 +27,15 @@ func newItem[V any](sk sdk.StoreKey, namespace Namespace, valueEncoder ValueEnco
 //
 // It builds on top of a Map with a constant key.
 type Item[V any] Map[uint64, V]
+
+func (i Item[V]) Descriptor() CollectionDescriptor {
+	return CollectionDescriptor{
+		Type:   "item",
+		Prefix: i.prefix,
+		Name:   i.name,
+		Value:  ValueDescriptor{Type: i.typeName},
+	}
+}
 
 // Get gets the item V or returns an error.
 func (i Item[V]) Get(ctx sdk.Context) (V, error) { return (Map[uint64, V])(i).Get(ctx, itemKey) }

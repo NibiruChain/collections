@@ -15,17 +15,21 @@ type Sequence struct {
 	sequence Item[uint64]
 }
 
-// NewSequence instantiates a new sequence object.
-func NewSequence(schema Schema, namespace Namespace, name string) Sequence {
-	schema.ensureUniqueNamespace(namespace)
-	schema.ensureUniqueName(name)
-	schema.descriptor.Sequences = append(schema.descriptor.Sequences, SequenceDescriptor{
-		Prefix: namespace.Prefix(),
-		Name:   name,
-	})
-	return Sequence{
-		sequence: newItem[uint64](schema.storeKey, namespace, uint64Value{}),
+func (s Sequence) Descriptor() CollectionDescriptor {
+	return CollectionDescriptor{
+		Type:   "seq",
+		Prefix: s.sequence.prefix,
+		Name:   s.sequence.name,
 	}
+}
+
+// NewSequence instantiates a new sequence object.
+func NewSequence(schema Schema, prefix Prefix, name string) Sequence {
+	seq := Sequence{
+		sequence: newItem[uint64](schema.storeKey, prefix, name, uint64Value{}),
+	}
+	schema.addCollection(seq)
+	return seq
 }
 
 // Next returns the next available sequence number

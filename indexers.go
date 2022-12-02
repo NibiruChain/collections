@@ -39,10 +39,10 @@ func (i IndexerIterator[IK, PK]) Close()      { (KeySetIterator[Pair[IK, PK]])(i
 // namespace is the unique storage namespace for the index.
 // getIndexingKeyFunc is a function which given the object returns the key we use to index the object.
 func NewMultiIndex[IK, PK any, V any](
-	sk sdk.StoreKey, namespace Namespace,
+	sk Schema, namespace Prefix,
 	indexKeyEncoder KeyEncoder[IK], primaryKeyEncoder KeyEncoder[PK],
 	getIndexingKeyFunc func(v V) IK) MultiIndex[IK, PK, V] {
-	ks := NewKeySet[Pair[IK, PK]](sk, namespace, PairKeyEncoder[IK, PK](indexKeyEncoder, primaryKeyEncoder))
+	ks := NewKeySet[Pair[IK, PK]](sk, namespace, "index_keys", PairKeyEncoder[IK, PK](indexKeyEncoder, primaryKeyEncoder))
 	return MultiIndex[IK, PK, V]{
 		jointKeys:      ks,
 		getIndexingKey: getIndexingKeyFunc,

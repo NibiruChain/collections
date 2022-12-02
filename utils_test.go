@@ -3,6 +3,7 @@ package collections
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -32,6 +33,11 @@ func (s stringValue) Name() string                  { return "test string" }
 // jsonValue is a ValueEncoder for objects to be turned into json.
 // used for testing.
 type jsonValue[T any] struct{}
+
+func (t jsonValue[T]) Type() string {
+	var value T
+	return fmt.Sprintf("sdk/JsonValue[%s]", reflect.TypeOf(value).String())
+}
 
 func (jsonValue[T]) Encode(value T) []byte {
 	b, _ := json.Marshal(value)

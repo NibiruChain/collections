@@ -30,7 +30,7 @@ type Indexer[PK any, V any] interface {
 
 // NewIndexedMap instantiates a new IndexedMap instance.
 func NewIndexedMap[PK any, V any, I IndexersProvider[PK, V]](
-	schema Schema, namespace Namespace,
+	schema Schema, namespace Prefix,
 	keyName string, primaryKeyEncoder KeyEncoder[PK],
 	valueName string, valueEncoder ValueEncoder[V],
 	indexers I) IndexedMap[PK, V, I] {

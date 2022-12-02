@@ -9,7 +9,7 @@ import (
 	db "github.com/tendermint/tm-db"
 )
 
-func deps() (sdk.StoreKey, sdk.Context, codec.BinaryCodec) {
+func deps() (Schema, sdk.Context, codec.BinaryCodec) {
 	sk := sdk.NewKVStoreKey("mock")
 	dbm := db.NewMemDB()
 	ms := store.NewCommitMultiStore(dbm)
@@ -18,7 +18,7 @@ func deps() (sdk.StoreKey, sdk.Context, codec.BinaryCodec) {
 		panic(err)
 	}
 
-	return sk,
+	return NewSchema(sk),
 		sdk.Context{}.
 			WithMultiStore(ms).
 			WithGasMeter(sdk.NewGasMeter(1_000_000_000)),
