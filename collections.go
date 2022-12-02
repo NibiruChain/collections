@@ -1,7 +1,10 @@
 package collections
 
 import (
+	"context"
 	"errors"
+
+	"github.com/gogo/protobuf/io"
 )
 
 // ErrNotFound is returned when an object is not found.
@@ -15,6 +18,9 @@ func (n Prefix) Prefix() []byte { return []byte{uint8(n)} }
 
 type Collection interface {
 	Descriptor() CollectionDescriptor
+	InitGenesis(context.Context, io.ReadCloser) error
+	ExportGenesis(context.Context, io.WriteCloser) error
+	Decode(key, value []byte) (k, v any, err error)
 }
 
 // KeyEncoder defines a generic interface which is implemented

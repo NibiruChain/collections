@@ -1,6 +1,8 @@
 package collections
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 
@@ -34,17 +36,6 @@ type KeyDescriptor struct {
 type ValueDescriptor struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
-}
-
-type SequenceDescriptor struct {
-	Prefix []byte `json:"prefix"`
-	Name   string `json:"name"`
-}
-
-type ItemDescriptor struct {
-	Prefix []byte
-	Name   string
-	Type   string
 }
 
 func NewSchema(storeKey sdk.StoreKey) Schema {
@@ -83,3 +74,23 @@ func (s Schema) addCollection(collection Collection) {
 }
 
 var nameRegex = regexp.MustCompile("^[A-Za-z][A-Za-z0-9_]*$")
+
+func (s Schema) InitGenesis(ctx context.Context, message json.RawMessage) error {
+	panic("TODO")
+}
+
+func (s Schema) ExportGenesis(ctx context.Context) (json.RawMessage, error) {
+	panic("TODO")
+}
+
+// Decode implements logical decoding.
+func (s Schema) Decode(key, value []byte) (Entry, error) {
+	panic("TODO")
+}
+
+// Entry is a logical decoding of key value pair bytes.
+type Entry struct {
+	CollectionName string
+	Key            any
+	Value          any
+}
