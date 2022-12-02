@@ -1,24 +1,28 @@
 package examples
 
 import (
-	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/NibiruChain/collections"
 )
 
 // let's showcase some more complex keys, like delegations which are composite.
 
 type StakingKeeper struct {
+	Schema      collections.Schema
 	Delegations collections.Map[collections.Pair[sdk.ValAddress, sdk.AccAddress], types.Delegation]
 }
 
 func NewStakingKeeper(sk sdk.StoreKey, cdc codec.BinaryCodec) *StakingKeeper {
+	schema := collections.NewSchema(sk)
 	return &StakingKeeper{
+		Schema: schema,
 		Delegations: collections.NewMap(
-			sk, 0,
-			collections.PairKeyEncoder(collections.ValAddressKeyEncoder, collections.AccAddressKeyEncoder), // we pass here a joint key encoder which encodes both val address key and acc address key
-			collections.ProtoValueEncoder[types.Delegation](cdc),
+			schema, 0,
+			"val_address_acc_address", collections.PairKeyEncoder(collections.ValAddressKeyEncoder, collections.AccAddressKeyEncoder), // we pass here a joint key encoder which encodes both val address key and acc address key
+			"delegation", collections.ProtoValueEncoder[types.Delegation](cdc),
 		),
 	}
 }

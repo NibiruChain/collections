@@ -23,6 +23,10 @@ type KeyEncoder[T any] interface {
 	Decode(b []byte) (int, T)
 	// Stringify returns a string representation of T.
 	Stringify(key T) string
+	// Type describes the type of key encoder.
+	Type() string
+	//// Params describes parameters to the key encoder.
+	//Params() []interface{}
 }
 
 // ValueEncoder defines a generic interface which is implemented
@@ -34,6 +38,6 @@ type ValueEncoder[T any] interface {
 	Decode(b []byte) T
 	// Stringify returns a string representation of T.
 	Stringify(value T) string
-	// Name returns the name of the object.
-	Name() string
+	// Type returns the type of the object.
+	Type() string
 }

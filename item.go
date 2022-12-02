@@ -8,8 +8,19 @@ import (
 var itemKey uint64 = 0
 
 // NewItem instantiates a new Item instance.
-func NewItem[V any](sk sdk.StoreKey, namespace Namespace, valueEncoder ValueEncoder[V]) Item[V] {
-	return (Item[V])(NewMap[uint64, V](sk, namespace, uint64Key{}, valueEncoder))
+func NewItem[V any](schema Schema, namespace Namespace, name string, valueEncoder ValueEncoder[V]) Item[V] {
+	schema.ensureUniqueNamespace(namespace)
+	schema.ensureUniqueName(name)
+	schema.descriptor.Items = append(schema.descriptor.Items, ItemDescriptor{
+		Prefix: namespace.Prefix(),
+		Name:   name,
+		Type:   valueEncoder.Type(),
+	})
+	return newItem(schema.storeKey, namespace, valueEncoder)
+}
+
+func newItem[V any](sk sdk.StoreKey, namespace Namespace, valueEncoder ValueEncoder[V]) Item[V] {
+	return (Item[V])(newMap[uint64, V](sk, namespace, uint64Key{}, valueEncoder))
 }
 
 // Item represents a state object which will always have one instance

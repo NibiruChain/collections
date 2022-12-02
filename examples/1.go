@@ -1,24 +1,31 @@
 package examples
 
 import (
-	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/NibiruChain/collections"
 )
 
 type AccountKeeper struct {
+	Schema        collections.Schema
 	AccountNumber collections.Sequence
 	Accounts      collections.Map[sdk.AccAddress, types.BaseAccount]
 	Params        collections.Item[types.Params]
 }
 
 func NewAccountKeeper(sk sdk.StoreKey, cdc codec.BinaryCodec) *AccountKeeper {
+	schema := collections.NewSchema(sk)
 	return &AccountKeeper{
-		AccountNumber: collections.NewSequence(sk, 0),                                                                                     // namespace is unique across the module's collections types
-		Accounts:      collections.NewMap(sk, 1, collections.AccAddressKeyEncoder, collections.ProtoValueEncoder[types.BaseAccount](cdc)), // we pass it the AccAddress key encoder and the base account value encoder.
-		Params:        collections.NewItem(sk, 2, collections.ProtoValueEncoder[types.Params](cdc)),
+		Schema:        schema,
+		AccountNumber: collections.NewSequence(schema, 0, "account_number_seq"),
+		Accounts: collections.NewMap(schema, 1,
+			"address", collections.AccAddressKeyEncoder,
+			"account", collections.ProtoValueEncoder[types.BaseAccount](cdc),
+		),
+		Params: collections.NewItem(schema, 2, "params", collections.ProtoValueEncoder[types.Params](cdc)),
 	}
 }
 

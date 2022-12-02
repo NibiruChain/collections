@@ -47,11 +47,19 @@ func (stringKey) Decode(b []byte) (int, string) {
 	panic(fmt.Errorf("string is not null terminated: %s", b))
 }
 
+func (stringKey) Type() string {
+	return "sdk/string"
+}
+
 type uint64Key struct{}
 
 func (uint64Key) Stringify(u uint64) string     { return strconv.FormatUint(u, 10) }
 func (uint64Key) Encode(u uint64) []byte        { return sdk.Uint64ToBigEndian(u) }
 func (uint64Key) Decode(b []byte) (int, uint64) { return 8, sdk.BigEndianToUint64(b) }
+
+func (uint64Key) Type() string {
+	return "sdk/uint64"
+}
 
 type timeKey struct{}
 
@@ -65,6 +73,10 @@ func (timeKey) Decode(b []byte) (int, time.Time) {
 	return len(b), t
 }
 
+func (timeKey) Type() string {
+	return "sdk/time"
+}
+
 type accAddressKey struct{}
 
 func (accAddressKey) Stringify(addr sdk.AccAddress) string { return addr.String() }
@@ -74,6 +86,10 @@ func (accAddressKey) Encode(addr sdk.AccAddress) []byte {
 func (accAddressKey) Decode(b []byte) (int, sdk.AccAddress) {
 	i, s := StringKeyEncoder.Decode(b)
 	return i, sdk.MustAccAddressFromBech32(s)
+}
+
+func (accAddressKey) Type() string {
+	return "sdk/AccAddress"
 }
 
 type valAddressKeyEncoder struct{}
@@ -90,6 +106,10 @@ func (v valAddressKeyEncoder) Decode(b []byte) (int, sdk.ValAddress) {
 	return r, valAddr
 }
 func (v valAddressKeyEncoder) Stringify(key sdk.ValAddress) string { return key.String() }
+
+func (valAddressKeyEncoder) Type() string {
+	return "sdk/ValAddress"
+}
 
 func (stringKey) Stringify(s string) string {
 	return s
@@ -119,6 +139,10 @@ func (consAddressKeyEncoder) Decode(b []byte) (int, sdk.ConsAddress) {
 }
 func (consAddressKeyEncoder) Stringify(key sdk.ConsAddress) string { return key.String() }
 
+func (consAddressKeyEncoder) Type() string {
+	return "sdk/ConAddress"
+}
+
 type sdkDecKeyEncoder struct{}
 
 func (sdkDecKeyEncoder) Stringify(key sdk.Dec) string { return key.String() }
@@ -137,4 +161,8 @@ func (sdkDecKeyEncoder) Decode(b []byte) (int, sdk.Dec) {
 	}
 
 	return len(b), dec
+}
+
+func (sdkDecKeyEncoder) Type() string {
+	return "sdk/Dec"
 }

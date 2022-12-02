@@ -1,10 +1,11 @@
 package examples
 
 import (
-	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/NibiruChain/collections"
 )
 
 // ValidatorIndexes defines the indexes for the Validator IndexedMap.
@@ -23,14 +24,19 @@ func (v ValidatorIndexes) IndexerList() []collections.Indexer[sdk.ValAddress, ty
 }
 
 type StakingKeeper2 struct {
+	Schema     collections.Schema
 	Validators collections.IndexedMap[sdk.ValAddress, types.Validator, ValidatorIndexes]
 }
 
 func NewStakingKeeper2(sk sdk.StoreKey, cdc codec.BinaryCodec) *StakingKeeper2 {
+	schema := collections.NewSchema(sk)
 	return &StakingKeeper2{
+		Schema: schema,
 		Validators: collections.NewIndexedMap(
-			sk, 0,
-			collections.ValAddressKeyEncoder,                    // defining how we encode the primary key
+			schema, 0,
+			"val_address",
+			collections.ValAddressKeyEncoder, // defining how we encode the primary key
+			"validator",
 			collections.ProtoValueEncoder[types.Validator](cdc), // defining how we enode the types.Validator object
 			ValidatorIndexes{
 				ConsensusAddress: collections.NewMultiIndex(

@@ -1,6 +1,9 @@
 package collections
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // PairKeyEncoder creates a new KeyEncoder for Pair types, give the two key encoders for K1 and K2.
 func PairKeyEncoder[K1, K2 any](kc1 KeyEncoder[K1], kc2 KeyEncoder[K2]) KeyEncoder[Pair[K1, K2]] {
@@ -64,6 +67,12 @@ func (p pairKeyEncoder[K1, K2]) Decode(b []byte) (int, Pair[K1, K2]) {
 		k1: &k1,
 		k2: &k2,
 	}
+}
+
+func (p pairKeyEncoder[K1, K2]) Type() string {
+	return fmt.Sprintf("sdk/Pair[%s]",
+		strings.Join([]string{p.kc1.Type(), p.kc2.Type()}, ","),
+	)
 }
 
 // Join returns a fully populated Pair

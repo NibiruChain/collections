@@ -16,9 +16,15 @@ type Sequence struct {
 }
 
 // NewSequence instantiates a new sequence object.
-func NewSequence(sk sdk.StoreKey, namespace Namespace) Sequence {
+func NewSequence(schema Schema, namespace Namespace, name string) Sequence {
+	schema.ensureUniqueNamespace(namespace)
+	schema.ensureUniqueName(name)
+	schema.descriptor.Sequences = append(schema.descriptor.Sequences, SequenceDescriptor{
+		Prefix: namespace.Prefix(),
+		Name:   name,
+	})
 	return Sequence{
-		sequence: NewItem[uint64](sk, namespace, uint64Value{}),
+		sequence: newItem[uint64](schema.storeKey, namespace, uint64Value{}),
 	}
 }
 
@@ -49,4 +55,4 @@ type uint64Value struct{}
 func (u uint64Value) Encode(value uint64) []byte    { return sdk.Uint64ToBigEndian(value) }
 func (u uint64Value) Decode(b []byte) uint64        { return sdk.BigEndianToUint64(b) }
 func (u uint64Value) Stringify(value uint64) string { return strconv.FormatUint(value, 10) }
-func (u uint64Value) Name() string                  { return "uint64" }
+func (u uint64Value) Type() string                  { return "uint64" }

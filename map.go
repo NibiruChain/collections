@@ -17,14 +17,36 @@ type Map[K, V any] struct {
 	typeName string
 }
 
-func NewMap[K, V any](sk sdk.StoreKey, namespace Namespace, kc KeyEncoder[K], vc ValueEncoder[V]) Map[K, V] {
+func NewMap[K, V any](schema Schema, namespace Namespace,
+	keyName string, kc KeyEncoder[K],
+	valueName string, vc ValueEncoder[V]) Map[K, V] {
+	schema.ensureUniqueNamespace(namespace)
+	// TODO schema.ensureUniqueName(valueName)
+	schema.descriptor.Maps = append(schema.descriptor.Maps, MapDescriptor{
+		Prefix: namespace.Prefix(),
+		Key: KeyDescriptor{
+			Name: keyName, // TODO valid name format
+			Type: kc.Type(),
+		},
+		Value: ValueDescriptor{
+			Name: valueName, // TODO valid name format
+			Type: vc.Type(),
+		},
+	})
+
+	return newMap(schema.storeKey, namespace, kc, vc)
+}
+
+func newMap[K, V any](sk sdk.StoreKey, namespace Namespace,
+	kc KeyEncoder[K],
+	vc ValueEncoder[V]) Map[K, V] {
 	return Map[K, V]{
 		kc:     kc,
 		vc:     vc,
 		prefix: namespace.Prefix(),
 		sk:     sk,
 		//nolint
-		typeName: vc.(ValueEncoder[V]).Name(), // go1.19 compiler bug
+		typeName: vc.(ValueEncoder[V]).Type(), // go1.19 compiler bug
 	}
 }
 

@@ -31,7 +31,7 @@ type protoValueEncoder[V any, PV interface {
 	cdc codec.BinaryCodec
 }
 
-func (p protoValueEncoder[V, PV]) Name() string          { return proto.MessageName(PV(new(V))) }
+func (p protoValueEncoder[V, PV]) Type() string          { return proto.MessageName(PV(new(V))) }
 func (p protoValueEncoder[V, PV]) Encode(value V) []byte { return p.cdc.MustMarshal(PV(&value)) }
 func (p protoValueEncoder[V, PV]) Stringify(v V) string  { return PV(&v).String() }
 func (p protoValueEncoder[V, PV]) Decode(b []byte) V {
@@ -63,7 +63,7 @@ func (d decValue) Stringify(value sdk.Dec) string {
 	return value.String()
 }
 
-func (d decValue) Name() string {
+func (d decValue) Type() string {
 	return "sdk.Dec"
 }
 
@@ -72,4 +72,4 @@ type accAddressValueEncoder struct{}
 func (a accAddressValueEncoder) Encode(value sdk.AccAddress) []byte    { return value }
 func (a accAddressValueEncoder) Decode(b []byte) sdk.AccAddress        { return b }
 func (a accAddressValueEncoder) Stringify(value sdk.AccAddress) string { return value.String() }
-func (a accAddressValueEncoder) Name() string                          { return "sdk.AccAddress" }
+func (a accAddressValueEncoder) Type() string                          { return "sdk.AccAddress" }
