@@ -36,7 +36,7 @@ func (stringKey) Encode(s string) []byte {
 
 func (stringKey) Decode(b []byte) (int, string) {
 	l := len(b)
-	if l < 2 {
+	if l < 1 {
 		panic(fmt.Errorf(
 			"invalid StringKey bytes. StringKey must be at least length 2. %s",
 			HumanizeBytes(b)))

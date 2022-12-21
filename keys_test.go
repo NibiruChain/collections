@@ -44,6 +44,13 @@ func TestStringKey(t *testing.T) {
 		})
 	})
 
+	t.Run("empty string", func(t *testing.T) {
+		b := StringKeyEncoder.Encode("")
+		i, r := StringKeyEncoder.Decode(b)
+		require.Equal(t, 1, i)
+		require.Equal(t, "", r)
+	})
+
 	t.Run("proper ordering", func(t *testing.T) {
 		stringKeys := []string{
 			"a", "aa", "b", "c", "dd",
