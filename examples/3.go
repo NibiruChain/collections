@@ -3,6 +3,7 @@ package examples
 import (
 	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -26,7 +27,7 @@ type StakingKeeper2 struct {
 	Validators collections.IndexedMap[sdk.ValAddress, types.Validator, ValidatorIndexes]
 }
 
-func NewStakingKeeper2(sk sdk.StoreKey, cdc codec.BinaryCodec) *StakingKeeper2 {
+func NewStakingKeeper2(sk storetypes.StoreKey, cdc codec.BinaryCodec) *StakingKeeper2 {
 	return &StakingKeeper2{
 		Validators: collections.NewIndexedMap(
 			sk, 0,
