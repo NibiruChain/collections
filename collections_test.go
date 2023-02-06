@@ -5,11 +5,12 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	"github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	db "github.com/tendermint/tm-db"
 )
 
-func deps() (sdk.StoreKey, sdk.Context, codec.BinaryCodec) {
+func deps() (storetypes.StoreKey, sdk.Context, codec.BinaryCodec) {
 	sk := sdk.NewKVStoreKey("mock")
 	dbm := db.NewMemDB()
 	ms := store.NewCommitMultiStore(dbm)
