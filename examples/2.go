@@ -3,6 +3,7 @@ package examples
 import (
 	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
+	storagetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -13,7 +14,7 @@ type StakingKeeper struct {
 	Delegations collections.Map[collections.Pair[sdk.ValAddress, sdk.AccAddress], types.Delegation]
 }
 
-func NewStakingKeeper(sk sdk.StoreKey, cdc codec.BinaryCodec) *StakingKeeper {
+func NewStakingKeeper(sk storagetypes.StoreKey, cdc codec.BinaryCodec) *StakingKeeper {
 	return &StakingKeeper{
 		Delegations: collections.NewMap(
 			sk, 0,

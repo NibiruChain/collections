@@ -9,7 +9,7 @@ import (
 	db "github.com/tendermint/tm-db"
 )
 
-func deps() (sdk.StoreKey, sdk.Context, codec.BinaryCodec) {
+func deps() (types.StoreKey, sdk.Context, codec.BinaryCodec) {
 	sk := sdk.NewKVStoreKey("mock")
 	dbm := db.NewMemDB()
 	ms := store.NewCommitMultiStore(dbm)

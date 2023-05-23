@@ -1,6 +1,7 @@
 package collections
 
 import (
+	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -8,7 +9,7 @@ import (
 var itemKey uint64 = 0
 
 // NewItem instantiates a new Item instance.
-func NewItem[V any](sk sdk.StoreKey, namespace Namespace, valueEncoder ValueEncoder[V]) Item[V] {
+func NewItem[V any](sk types.StoreKey, namespace Namespace, valueEncoder ValueEncoder[V]) Item[V] {
 	return (Item[V])(NewMap[uint64, V](sk, namespace, uint64Key{}, valueEncoder))
 }
 

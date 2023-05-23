@@ -3,6 +3,7 @@ package collections
 import (
 	"bytes"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -16,7 +17,7 @@ type KeySet[K any] Map[K, setObject]
 type KeySetIterator[K any] Iterator[K, setObject]
 
 // NewKeySet instantiates a new KeySet.
-func NewKeySet[K any](sk sdk.StoreKey, namespace Namespace, keyEncoder KeyEncoder[K]) KeySet[K] {
+func NewKeySet[K any](sk types.StoreKey, namespace Namespace, keyEncoder KeyEncoder[K]) KeySet[K] {
 	return (KeySet[K])(NewMap[K, setObject](sk, namespace, keyEncoder, setObject{}))
 }
 
