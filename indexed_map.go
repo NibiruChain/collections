@@ -1,6 +1,7 @@
 package collections
 
 import (
+	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -30,7 +31,7 @@ type Indexer[PK any, V any] interface {
 
 // NewIndexedMap instantiates a new IndexedMap instance.
 func NewIndexedMap[PK any, V any, I IndexersProvider[PK, V]](
-	storeKey sdk.StoreKey, namespace Namespace,
+	storeKey types.StoreKey, namespace Namespace,
 	primaryKeyEncoder KeyEncoder[PK],
 	valueEncoder ValueEncoder[V],
 	indexers I) IndexedMap[PK, V, I] {

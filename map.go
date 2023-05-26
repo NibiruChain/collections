@@ -2,6 +2,7 @@ package collections
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,12 +13,12 @@ type Map[K, V any] struct {
 	vc ValueEncoder[V]
 
 	prefix []byte
-	sk     sdk.StoreKey
+	sk     types.StoreKey
 
 	typeName string
 }
 
-func NewMap[K, V any](sk sdk.StoreKey, namespace Namespace, kc KeyEncoder[K], vc ValueEncoder[V]) Map[K, V] {
+func NewMap[K, V any](sk types.StoreKey, namespace Namespace, kc KeyEncoder[K], vc ValueEncoder[V]) Map[K, V] {
 	return Map[K, V]{
 		kc:     kc,
 		vc:     vc,
