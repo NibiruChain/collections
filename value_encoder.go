@@ -90,13 +90,16 @@ type intValueEncoder struct{}
 func (intValueEncoder) Encode(value math.Int) []byte {
 	return IntKeyEncoder.Encode(value)
 }
+
 func (intValueEncoder) Decode(b []byte) math.Int {
 	_, got := IntKeyEncoder.Decode(b)
 	return got
 }
+
 func (intValueEncoder) Stringify(value math.Int) string {
 	return IntKeyEncoder.Stringify(value)
 }
+
 func (intValueEncoder) Name() string {
 	return "math.Int"
 }

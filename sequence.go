@@ -1,8 +1,9 @@
 package collections
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/types"
 	"strconv"
+
+	"github.com/cosmos/cosmos-sdk/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

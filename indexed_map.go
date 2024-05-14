@@ -34,7 +34,8 @@ func NewIndexedMap[PK any, V any, I IndexersProvider[PK, V]](
 	storeKey types.StoreKey, namespace Namespace,
 	primaryKeyEncoder KeyEncoder[PK],
 	valueEncoder ValueEncoder[V],
-	indexers I) IndexedMap[PK, V, I] {
+	indexers I,
+) IndexedMap[PK, V, I] {
 	m := NewMap[PK, V](storeKey, namespace, primaryKeyEncoder, valueEncoder)
 	return IndexedMap[PK, V, I]{
 		m:       m,

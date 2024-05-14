@@ -42,7 +42,8 @@ func (i IndexerIterator[IK, PK]) Close()      { (KeySetIterator[Pair[IK, PK]])(i
 func NewMultiIndex[IK, PK any, V any](
 	sk types.StoreKey, namespace Namespace,
 	indexKeyEncoder KeyEncoder[IK], primaryKeyEncoder KeyEncoder[PK],
-	getIndexingKeyFunc func(v V) IK) MultiIndex[IK, PK, V] {
+	getIndexingKeyFunc func(v V) IK,
+) MultiIndex[IK, PK, V] {
 	ks := NewKeySet[Pair[IK, PK]](sk, namespace, PairKeyEncoder[IK, PK](indexKeyEncoder, primaryKeyEncoder))
 	return MultiIndex[IK, PK, V]{
 		jointKeys:      ks,

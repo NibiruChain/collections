@@ -73,6 +73,7 @@ func (accAddressKey) Stringify(addr sdk.AccAddress) string { return addr.String(
 func (accAddressKey) Encode(addr sdk.AccAddress) []byte {
 	return StringKeyEncoder.Encode(addr.String())
 }
+
 func (accAddressKey) Decode(b []byte) (int, sdk.AccAddress) {
 	i, s := StringKeyEncoder.Decode(b)
 	return i, sdk.MustAccAddressFromBech32(s)
@@ -83,6 +84,7 @@ type valAddressKeyEncoder struct{}
 func (v valAddressKeyEncoder) Encode(key sdk.ValAddress) []byte {
 	return StringKeyEncoder.Encode(key.String())
 }
+
 func (v valAddressKeyEncoder) Decode(b []byte) (int, sdk.ValAddress) {
 	r, s := StringKeyEncoder.Decode(b)
 	valAddr, err := sdk.ValAddressFromBech32(s)
@@ -111,6 +113,7 @@ type consAddressKeyEncoder struct{}
 func (consAddressKeyEncoder) Encode(key sdk.ConsAddress) []byte {
 	return StringKeyEncoder.Encode(key.String())
 }
+
 func (consAddressKeyEncoder) Decode(b []byte) (int, sdk.ConsAddress) {
 	r, s := StringKeyEncoder.Decode(b)
 	consAddr, err := sdk.ConsAddressFromBech32(s)
@@ -132,6 +135,7 @@ func (sdkDecKeyEncoder) Encode(key sdk.Dec) []byte {
 	}
 	return bz
 }
+
 func (sdkDecKeyEncoder) Decode(b []byte) (int, sdk.Dec) {
 	var dec sdk.Dec
 	if err := dec.Unmarshal(b); err != nil {

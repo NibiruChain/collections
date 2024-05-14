@@ -3,6 +3,7 @@ package collections
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,10 +19,35 @@ func TestUpstreamIterAssertions(t *testing.T) {
 	require.NoError(t, i.Close())
 }
 
+type MapImpl[K, V any] interface {
+	Delete(ctx sdk.Context, k K) error
+	Get(ctx sdk.Context, k K) (v V, err error)
+	GetOr(ctx sdk.Context, key K, def V) (v V)
+	GetStore(ctx sdk.Context) sdk.KVStore
+	Insert(ctx sdk.Context, k K, v V)
+	Iterate(ctx sdk.Context, rng Ranger[K]) Iterator[K, V]
+}
+
 func TestMap(t *testing.T) {
 	sk, ctx, _ := deps()
-	m := NewMap[string, string](sk, 0, StringKeyEncoder, stringValue{})
+	RunTestMap(t, ctx, NewMap[string, string](sk, 0, StringKeyEncoder, stringValue{}))
+	sk, ctx, _ = deps()
+	RunTestMap(t, ctx, NewMapTransient[string, string](sk, 1, StringKeyEncoder, stringValue{}))
+}
 
+func TestMapGetOrDefault(t *testing.T) {
+	sk, ctx, _ := deps()
+	RunTestMapGetOrDefault(t, ctx, NewMap[string, string](sk, 2, StringKeyEncoder, stringValue{}))
+	RunTestMapGetOrDefault(t, ctx, NewMapTransient[string, string](sk, 3, StringKeyEncoder, stringValue{}))
+}
+
+func TestMapIterate(t *testing.T) {
+	sk, ctx, _ := deps()
+	RunTestMapIterate(t, ctx, NewMap[string, string](sk, 0, StringKeyEncoder, stringValue{}))
+	RunTestMapIterate(t, ctx, NewMapTransient[string, string](sk, 1, StringKeyEncoder, stringValue{}))
+}
+
+func RunTestMap(t *testing.T, ctx sdk.Context, m MapImpl[string, string]) {
 	key := "id"
 	expected := "test"
 
@@ -46,24 +72,20 @@ func TestMap(t *testing.T) {
 	require.ErrorContains(t, err, "id") // assert key is correctly reported
 }
 
-func TestMapGetOrDefault(t *testing.T) {
-	sk, ctx, _ := deps()
-	m := NewMap[string, string](sk, 0, StringKeyEncoder, stringValue{})
+func RunTestMapGetOrDefault(t *testing.T, ctx sdk.Context, m MapImpl[string, string]) {
 	assert.EqualValues(t, "default", m.GetOr(ctx, "foo", "default"))
 
 	m.Insert(ctx, "foo", "not-default")
 	assert.EqualValues(t, "not-default", m.GetOr(ctx, "foo", "default"))
 }
 
-func TestMapIterate(t *testing.T) {
+func RunTestMapIterate(t *testing.T, ctx sdk.Context, m MapImpl[string, string]) {
 	kv := func(o string) KeyValue[string, string] {
 		return KeyValue[string, string]{
 			Key:   o,
 			Value: o,
 		}
 	}
-	sk, ctx, _ := deps()
-	m := NewMap[string, string](sk, 0, StringKeyEncoder, stringValue{})
 
 	expectedObjs := []KeyValue[string, string]{
 		kv("a"), kv("aa"), kv("b"), kv("bb"),
