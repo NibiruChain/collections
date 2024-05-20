@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/store"
-	"cosmossdk.io/store/types"
+	storetypes "cosmossdk.io/store/types"
 
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +18,7 @@ type Map[K, V any] struct {
 	vc ValueEncoder[V]
 
 	prefix []byte
-	sk     types.StoreKey
+	sk     storetypes.StoreKey
 
 	typeName string
 }
@@ -27,7 +27,7 @@ type Map[K, V any] struct {
 // encoder, and value encoder. It initializes a namespace-specific prefix and
 // type name for value type V.
 func NewMap[K, V any](
-	sk types.StoreKey, namespace Namespace, kc KeyEncoder[K], vc ValueEncoder[V],
+	sk storetypes.StoreKey, namespace Namespace, kc KeyEncoder[K], vc ValueEncoder[V],
 ) Map[K, V] {
 	return Map[K, V]{
 		kc:     kc,
@@ -112,7 +112,7 @@ func (m MapTransient[K, V]) GetStore(ctx sdk.Context) store.KVStore {
 }
 
 func NewMapTransient[K, V any](
-	sk types.StoreKey, namespace Namespace, kc KeyEncoder[K], vc ValueEncoder[V],
+	sk storetypes.StoreKey, namespace Namespace, kc KeyEncoder[K], vc ValueEncoder[V],
 ) MapTransient[K, V] {
 	return MapTransient[K, V]{
 		Map: Map[K, V]{

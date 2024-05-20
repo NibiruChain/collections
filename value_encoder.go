@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	cosmosproto "github.com/cosmos/gogoproto/proto"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -22,7 +23,7 @@ var (
 // the protobuf object bytes representation into the concrete object.
 func ProtoValueEncoder[V any, PV interface {
 	*V
-	codec.ProtoMarshaler
+	cosmosproto.Message
 }](cdc codec.BinaryCodec) ValueEncoder[V] {
 	return protoValueEncoder[V, PV]{
 		cdc: cdc,
@@ -31,7 +32,7 @@ func ProtoValueEncoder[V any, PV interface {
 
 type protoValueEncoder[V any, PV interface {
 	*V
-	codec.ProtoMarshaler
+	cosmosproto.Message
 }] struct {
 	cdc codec.BinaryCodec
 }

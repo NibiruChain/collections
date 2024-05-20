@@ -1,7 +1,7 @@
 package examples
 
 import (
-	storagetypes "cosmossdk.io/store/types"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -15,7 +15,7 @@ type AccountKeeper struct {
 	Params        collections.Item[types.Params]
 }
 
-func NewAccountKeeper(sk storagetypes.StoreKey, cdc codec.BinaryCodec) *AccountKeeper {
+func NewAccountKeeper(sk storetypes.StoreKey, cdc codec.BinaryCodec) *AccountKeeper {
 	return &AccountKeeper{
 		AccountNumber: collections.NewSequence(sk, 0),                                                                                     // namespace is unique across the module's collections types
 		Accounts:      collections.NewMap(sk, 1, collections.AccAddressKeyEncoder, collections.ProtoValueEncoder[types.BaseAccount](cdc)), // we pass it the AccAddress key encoder and the base account value encoder.
