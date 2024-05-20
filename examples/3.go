@@ -1,9 +1,9 @@
 package examples
 
 import (
+	storagetypes "cosmossdk.io/store/types"
 	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storagetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -56,7 +56,8 @@ func NewStakingKeeper2(sk storagetypes.StoreKey, cdc codec.BinaryCodec) *Staking
 }
 
 func (k StakingKeeper2) CreateValidator(ctx sdk.Context, val types.Validator) {
-	k.Validators.Insert(ctx, val.GetOperator(), val)
+	address, _ := sdk.ValAddressFromBech32(val.GetOperator())
+	k.Validators.Insert(ctx, address, val)
 }
 
 func (k StakingKeeper2) GetValidatorsByConsAddress(ctx sdk.Context, consAddr sdk.ConsAddress) []types.Validator {

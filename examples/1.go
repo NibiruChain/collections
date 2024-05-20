@@ -1,10 +1,10 @@
 package examples
 
 import (
+	storagetypes "cosmossdk.io/store/types"
 	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
-	storagetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/x/auth/types"
 )

@@ -3,8 +3,9 @@ package collections
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	store "cosmossdk.io/store"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 )
 
 // Order defines the key order.
@@ -104,7 +105,7 @@ func (r Range[K]) RangeValues() (prefix *K, start *Bound[K], end *Bound[K], orde
 }
 
 // iteratorFromRange generates an Iterator instance, with the proper prefixing and ranging.
-func iteratorFromRange[K, V any](s sdk.KVStore, r Ranger[K], kc KeyEncoder[K], vc ValueEncoder[V]) Iterator[K, V] {
+func iteratorFromRange[K, V any](s store.KVStore, r Ranger[K], kc KeyEncoder[K], vc ValueEncoder[V]) Iterator[K, V] {
 	pfx, start, end, order := r.RangeValues()
 	var prefixBytes []byte
 	if pfx != nil {
@@ -132,7 +133,7 @@ func iteratorFromRange[K, V any](s sdk.KVStore, r Ranger[K], kc KeyEncoder[K], v
 		}
 	}
 
-	var iter sdk.Iterator
+	var iter storetypes.Iterator
 	switch order {
 	case OrderAscending:
 		iter = s.Iterator(startBytes, endBytes)
@@ -150,15 +151,15 @@ func iteratorFromRange[K, V any](s sdk.KVStore, r Ranger[K], kc KeyEncoder[K], v
 	}
 }
 
-// Iterator defines a generic wrapper around an sdk.Iterator.
+// Iterator defines a generic wrapper around an storetypes.Iterator.
 // This iterator provides automatic key and value encoding,
-// it assumes all the keys and values contained within the sdk.Iterator
+// it assumes all the keys and values contained within the storetypes.Iterator
 // range are the same.
 type Iterator[K, V any] struct {
 	kc KeyEncoder[K]
 	vc ValueEncoder[V]
 
-	iter sdk.Iterator
+	iter storetypes.Iterator
 
 	prefixBytes []byte
 }
@@ -168,7 +169,7 @@ func (i Iterator[K, V]) Value() V {
 	return i.vc.Decode(i.iter.Value())
 }
 
-// Key returns the current sdk.Iterator decoded key.
+// Key returns the current storetypes.Iterator decoded key.
 func (i Iterator[K, V]) Key() K {
 	rawKey := append(i.prefixBytes, i.iter.Key()...)
 	read, c := i.kc.Decode(rawKey)

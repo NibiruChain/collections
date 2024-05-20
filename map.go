@@ -3,9 +3,10 @@ package collections
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/types"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/types"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -83,7 +84,7 @@ func (m Map[K, V]) Iterate(ctx sdk.Context, rng Ranger[K]) Iterator[K, V] {
 
 // GetStore returns a namespaced version of the underlying KVStore for the map.
 // It is used to access the store using the prefixed namespace.
-func (m Map[K, V]) GetStore(ctx sdk.Context) sdk.KVStore {
+func (m Map[K, V]) GetStore(ctx sdk.Context) store.KVStore {
 	kvStore := ctx.KVStore(m.sk) // persistent store
 	return prefix.NewStore(kvStore, m.prefix)
 }
@@ -105,7 +106,7 @@ type MapTransient[K, V any] struct {
 
 // GetStore returns a namespaced version of the underlying KVStore for the map.
 // It is used to access the store using the prefixed namespace.
-func (m MapTransient[K, V]) GetStore(ctx sdk.Context) sdk.KVStore {
+func (m MapTransient[K, V]) GetStore(ctx sdk.Context) store.KVStore {
 	kvStore := ctx.TransientStore(m.sk)
 	return prefix.NewStore(kvStore, m.prefix)
 }

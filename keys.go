@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -21,8 +22,8 @@ var (
 	ValAddressKeyEncoder KeyEncoder[sdk.ValAddress] = valAddressKeyEncoder{}
 	// ConsAddressKeyEncoder can be used to encode sdk.ConsAddress keys.
 	ConsAddressKeyEncoder KeyEncoder[sdk.ConsAddress] = consAddressKeyEncoder{}
-	// SdkDecKeyEncoder can be used to encode sdk.Dec keys.
-	SdkDecKeyEncoder KeyEncoder[sdk.Dec] = sdkDecKeyEncoder{}
+	// SdkDecKeyEncoder can be used to encode math.LegacyDec keys.
+	SdkDecKeyEncoder KeyEncoder[math.LegacyDec] = sdkDecKeyEncoder{}
 )
 
 type stringKey struct{}
@@ -126,9 +127,9 @@ func (consAddressKeyEncoder) Stringify(key sdk.ConsAddress) string { return key.
 
 type sdkDecKeyEncoder struct{}
 
-func (sdkDecKeyEncoder) Stringify(key sdk.Dec) string { return key.String() }
+func (sdkDecKeyEncoder) Stringify(key math.LegacyDec) string { return key.String() }
 
-func (sdkDecKeyEncoder) Encode(key sdk.Dec) []byte {
+func (sdkDecKeyEncoder) Encode(key math.LegacyDec) []byte {
 	bz, err := key.Marshal()
 	if err != nil {
 		panic(fmt.Errorf("invalid DecKey: %w %s", err, HumanizeBytes(bz)))
@@ -136,8 +137,8 @@ func (sdkDecKeyEncoder) Encode(key sdk.Dec) []byte {
 	return bz
 }
 
-func (sdkDecKeyEncoder) Decode(b []byte) (int, sdk.Dec) {
-	var dec sdk.Dec
+func (sdkDecKeyEncoder) Decode(b []byte) (int, math.LegacyDec) {
+	var dec math.LegacyDec
 	if err := dec.Unmarshal(b); err != nil {
 		panic(fmt.Errorf("invalid DecKey bytes: %w %s", err, HumanizeBytes(b)))
 	}

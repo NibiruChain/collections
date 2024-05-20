@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -98,10 +99,10 @@ func TestValAddressKey(t *testing.T) {
 
 func TestSdkDecKey(t *testing.T) {
 	t.Run("bijective", func(t *testing.T) {
-		assertBijective(t, SdkDecKeyEncoder, sdk.NewDec(123456789))
+		assertBijective(t, SdkDecKeyEncoder, math.LegacyNewDec(123456789))
 	})
 
 	t.Run("zero dec", func(t *testing.T) {
-		assertBijective(t, SdkDecKeyEncoder, sdk.ZeroDec())
+		assertBijective(t, SdkDecKeyEncoder, math.LegacyZeroDec())
 	})
 }
