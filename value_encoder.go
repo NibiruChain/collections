@@ -7,12 +7,13 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	cosmosproto "github.com/cosmos/gogoproto/proto"
 	"github.com/gogo/protobuf/proto"
 )
 
 var (
 	AccAddressValueEncoder ValueEncoder[sdk.AccAddress] = accAddressValueEncoder{}
-	DecValueEncoder        ValueEncoder[sdk.Dec]        = decValueEncoder{}
+	DecValueEncoder        ValueEncoder[math.LegacyDec] = decValueEncoder{}
 	IntValueEncoder        ValueEncoder[math.Int]       = intValueEncoder{}
 	Uint64ValueEncoder     ValueEncoder[uint64]         = uint64Value{}
 )
@@ -22,7 +23,7 @@ var (
 // the protobuf object bytes representation into the concrete object.
 func ProtoValueEncoder[V any, PV interface {
 	*V
-	codec.ProtoMarshaler
+	cosmosproto.Message
 }](cdc codec.BinaryCodec) ValueEncoder[V] {
 	return protoValueEncoder[V, PV]{
 		cdc: cdc,
@@ -31,7 +32,7 @@ func ProtoValueEncoder[V any, PV interface {
 
 type protoValueEncoder[V any, PV interface {
 	*V
-	codec.ProtoMarshaler
+	cosmosproto.Message
 }] struct {
 	cdc codec.BinaryCodec
 }
@@ -45,11 +46,11 @@ func (p protoValueEncoder[V, PV]) Decode(b []byte) V {
 	return *v
 }
 
-// DecValueEncoder ValueEncoder[sdk.Dec]
+// DecValueEncoder ValueEncoder[math.LegacyDec]
 
 type decValueEncoder struct{}
 
-func (d decValueEncoder) Encode(value sdk.Dec) []byte {
+func (d decValueEncoder) Encode(value math.LegacyDec) []byte {
 	b, err := value.Marshal()
 	if err != nil {
 		panic(fmt.Errorf("%w %s", err, HumanizeBytes(b)))
@@ -57,8 +58,8 @@ func (d decValueEncoder) Encode(value sdk.Dec) []byte {
 	return b
 }
 
-func (d decValueEncoder) Decode(b []byte) sdk.Dec {
-	dec := new(sdk.Dec)
+func (d decValueEncoder) Decode(b []byte) math.LegacyDec {
+	dec := new(math.LegacyDec)
 	err := dec.Unmarshal(b)
 	if err != nil {
 		panic(fmt.Errorf("%w %s", err, HumanizeBytes(b)))
@@ -66,12 +67,12 @@ func (d decValueEncoder) Decode(b []byte) sdk.Dec {
 	return *dec
 }
 
-func (d decValueEncoder) Stringify(value sdk.Dec) string {
+func (d decValueEncoder) Stringify(value math.LegacyDec) string {
 	return value.String()
 }
 
 func (d decValueEncoder) Name() string {
-	return "sdk.Dec"
+	return "math.LegacyDec"
 }
 
 // AccAddressValueEncoder ValueEncoder[sdk.AccAddress]

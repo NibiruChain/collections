@@ -36,7 +36,7 @@ func (s *SuiteValueEncoder) TestProtoValueEncoder() {
 
 func (s *SuiteValueEncoder) TestDecValueEncoder() {
 	s.Run("bijectivity", func() {
-		assertValueBijective(s.T(), DecValueEncoder, sdk.MustNewDecFromStr("-1000.5858"))
+		assertValueBijective(s.T(), DecValueEncoder, math.LegacyMustNewDecFromStr("-1000.5858"))
 	})
 }
 
@@ -60,29 +60,29 @@ func (s *SuiteValueEncoder) TestIntEncoder() {
 	s.Greater(outOfBounds.BitLen(), math.MaxBitLen)
 
 	s.NotPanics(func() {
-		sdk.NewIntFromBigInt(maxBigInt)
+		math.NewIntFromBigInt(maxBigInt)
 	})
 	s.Panics(func() {
-		sdk.NewIntFromBigInt(outOfBounds)
+		math.NewIntFromBigInt(outOfBounds)
 	})
 
 	s.Require().Equal(maxIntKeyLen, len(maxBigInt.Bytes()))
 
 	// test encoding ordering
-	enc1 := IntKeyEncoder.Encode(sdk.NewInt(50_000))
-	enc2 := IntKeyEncoder.Encode(sdk.NewInt(100_000))
+	enc1 := IntKeyEncoder.Encode(math.NewInt(50_000))
+	enc2 := IntKeyEncoder.Encode(math.NewInt(100_000))
 	s.Less(enc1, enc2)
 
 	// test decoding
 	size, got1 := IntKeyEncoder.Decode(enc1)
 	s.Equal(maxIntKeyLen, size)
 	_, got2 := IntKeyEncoder.Decode(enc2)
-	s.Equal(sdk.NewInt(50_000), got1)
-	s.Equal(sdk.NewInt(100_000), got2)
+	s.Equal(math.NewInt(50_000), got1)
+	s.Equal(math.NewInt(100_000), got2)
 
 	// require panics on negative values
 	s.Panics(func() {
-		IntKeyEncoder.Encode(sdk.NewInt(-1))
+		IntKeyEncoder.Encode(math.NewInt(-1))
 	})
 	// require panics on invalid int
 	s.Panics(func() {
@@ -90,7 +90,7 @@ func (s *SuiteValueEncoder) TestIntEncoder() {
 	})
 
 	// test value encoder
-	value := sdk.NewInt(50_000)
+	value := math.NewInt(50_000)
 	valueBytes := IntValueEncoder.Encode(value)
 	gotValue := IntValueEncoder.Decode(valueBytes)
 	s.Equal(value, gotValue)

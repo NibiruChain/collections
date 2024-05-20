@@ -1,7 +1,7 @@
 package collections
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -40,7 +40,7 @@ func (i IndexerIterator[IK, PK]) Close()      { (KeySetIterator[Pair[IK, PK]])(i
 // namespace is the unique storage namespace for the index.
 // getIndexingKeyFunc is a function which given the object returns the key we use to index the object.
 func NewMultiIndex[IK, PK any, V any](
-	sk types.StoreKey, namespace Namespace,
+	sk storetypes.StoreKey, namespace Namespace,
 	indexKeyEncoder KeyEncoder[IK], primaryKeyEncoder KeyEncoder[PK],
 	getIndexingKeyFunc func(v V) IK,
 ) MultiIndex[IK, PK, V] {

@@ -3,7 +3,7 @@ package collections
 import (
 	"strconv"
 
-	"github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -18,7 +18,7 @@ type Sequence struct {
 }
 
 // NewSequence instantiates a new sequence object.
-func NewSequence(sk types.StoreKey, namespace Namespace) Sequence {
+func NewSequence(sk storetypes.StoreKey, namespace Namespace) Sequence {
 	return Sequence{
 		sequence: NewItem[uint64](sk, namespace, uint64Value{}),
 	}

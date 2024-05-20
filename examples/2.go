@@ -1,9 +1,10 @@
 package examples
 
 import (
+	"cosmossdk.io/math"
+	storagetypes "cosmossdk.io/store/types"
 	"github.com/NibiruChain/collections"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storagetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -28,7 +29,7 @@ func (k StakingKeeper) CreateDelegation(ctx sdk.Context, val sdk.ValAddress, del
 	k.Delegations.Insert(ctx, collections.Join(val, del), types.Delegation{
 		DelegatorAddress: del.String(),
 		ValidatorAddress: val.String(),
-		Shares:           sdk.MustNewDecFromStr("100000"),
+		Shares:           math.LegacyMustNewDecFromStr("100000"),
 	})
 }
 

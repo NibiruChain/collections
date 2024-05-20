@@ -1,7 +1,7 @@
 package collections
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -9,7 +9,7 @@ import (
 const itemKey uint64 = 0
 
 // NewItem instantiates a new Item instance.
-func NewItem[V any](sk types.StoreKey, namespace Namespace, valueEncoder ValueEncoder[V]) Item[V] {
+func NewItem[V any](sk storetypes.StoreKey, namespace Namespace, valueEncoder ValueEncoder[V]) Item[V] {
 	return (Item[V])(NewMap[uint64, V](sk, namespace, uint64Key{}, valueEncoder))
 }
 
@@ -35,7 +35,7 @@ func (i Item[V]) Set(ctx sdk.Context, v V) { (Map[uint64, V])(i).Insert(ctx, ite
 
 // NewItem instantiates a new Item instance.
 func NewItemTransient[V any](
-	sk types.StoreKey, namespace Namespace, valueEncoder ValueEncoder[V],
+	sk storetypes.StoreKey, namespace Namespace, valueEncoder ValueEncoder[V],
 ) ItemTransient[V] {
 	return (ItemTransient[V])(NewMapTransient[uint64, V](sk, namespace, uint64Key{}, valueEncoder))
 }

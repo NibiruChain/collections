@@ -3,6 +3,7 @@ package collections
 import (
 	"testing"
 
+	"cosmossdk.io/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +24,7 @@ type MapImpl[K, V any] interface {
 	Delete(ctx sdk.Context, k K) error
 	Get(ctx sdk.Context, k K) (v V, err error)
 	GetOr(ctx sdk.Context, key K, def V) (v V)
-	GetStore(ctx sdk.Context) sdk.KVStore
+	GetStore(ctx sdk.Context) store.KVStore
 	Insert(ctx sdk.Context, k K, v V)
 	Iterate(ctx sdk.Context, rng Ranger[K]) Iterator[K, V]
 }
