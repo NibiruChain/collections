@@ -1,6 +1,7 @@
 package collections
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strconv"
 	"time"
@@ -59,13 +60,20 @@ func (uint64Key) Decode(b []byte) (int, uint64) { return 8, sdk.BigEndianToUint6
 type timeKey struct{}
 
 func (timeKey) Stringify(t time.Time) string { return t.String() }
-func (timeKey) Encode(t time.Time) []byte    { return sdk.FormatTimeBytes(t) }
+
+func (timeKey) Encode(t time.Time) []byte {
+	// Use Unix milliseconds to reduce the size (8 bytes)
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(t.UnixMilli()))
+	return b
+}
+
 func (timeKey) Decode(b []byte) (int, time.Time) {
-	t, err := sdk.ParseTimeBytes(b)
-	if err != nil {
-		panic(fmt.Errorf("%w %s", err, HumanizeBytes(b)))
+	if len(b) < 8 {
+		panic("invalid time key")
 	}
-	return len(b), t
+	ts := binary.BigEndian.Uint64(b[:8])
+	return 8, time.UnixMilli(int64(ts))
 }
 
 type accAddressKey struct{}
