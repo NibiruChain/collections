@@ -1,7 +1,9 @@
 package collections
 
 import (
+	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,4 +54,222 @@ func TestKeysetIterator(t *testing.T) {
 
 	iter.Next()
 	assert.False(t, iter.Valid())
+}
+
+func TestTimeKeySet(t *testing.T) {
+	sk, ctx, _ := deps()
+	keyset := NewKeySet[time.Time](sk, 0, TimeKeyEncoder)
+
+	// Use a fixed time
+	now := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
+	keyset.Insert(ctx, now)
+	require.True(t, keyset.Has(ctx, now))
+
+	// Test delete and get
+	keyset.Delete(ctx, now)
+	require.False(t, keyset.Has(ctx, now))
+}
+
+func TestTimeKeySet_IterateAscending(t *testing.T) {
+	sk, ctx, _ := deps()
+	keyset := NewKeySet[time.Time](sk, 0, TimeKeyEncoder)
+
+	now := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
+	times := []time.Time{
+		now.Add(2 * time.Second),
+		now.Add(1 * time.Second),
+		now.Add(3 * time.Second),
+		now,
+	}
+
+	// Insert times into the keyset
+	for _, t := range times {
+		keyset.Insert(ctx, t)
+	}
+
+	// Sort times in ascending order
+	sort.Slice(times, func(i, j int) bool {
+		return times[i].Before(times[j])
+	})
+
+	// Iterate over the keyset in ascending order
+	iter := keyset.Iterate(ctx, Range[time.Time]{})
+	defer iter.Close()
+
+	keys := iter.Keys()
+	require.Equal(t, len(times), len(keys))
+
+	for i, k := range keys {
+		// Strip monotonic clock readings
+		expectedTime := times[i].Round(0)
+		actualTime := k.Round(0)
+
+		// Compare UnixNano timestamps
+		require.Equal(t, expectedTime.UnixNano(), actualTime.UnixNano())
+	}
+}
+
+func TestTimeKeySet_IterateDescending(t *testing.T) {
+	sk, ctx, _ := deps()
+	keyset := NewKeySet[time.Time](sk, 0, TimeKeyEncoder)
+
+	now := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
+	times := []time.Time{
+		now.Add(2 * time.Second),
+		now.Add(1 * time.Second),
+		now.Add(3 * time.Second),
+		now,
+	}
+
+	// Insert times into the keyset
+	for _, t := range times {
+		keyset.Insert(ctx, t)
+	}
+
+	// Sort times in descending order
+	sort.Slice(times, func(i, j int) bool {
+		return times[i].After(times[j])
+	})
+
+	// Iterate over the keyset in descending order
+	iter := keyset.Iterate(ctx, Range[time.Time]{}.Descending())
+	defer iter.Close()
+
+	keys := iter.Keys()
+	require.Equal(t, len(times), len(keys))
+
+	for i, k := range keys {
+		expectedTime := times[i].Round(0)
+		actualTime := k.Round(0)
+		require.Equal(t, expectedTime.UnixNano(), actualTime.UnixNano())
+	}
+}
+
+func TestTimeKeyEncoder_EncodeDecode(t *testing.T) {
+	now := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
+	encoded := TimeKeyEncoder.Encode(now)
+	_, decoded := TimeKeyEncoder.Decode(encoded)
+
+	// Compare UnixNano timestamps
+	require.Equal(t, now.UnixNano(), decoded.UnixNano())
+}
+
+func TestTimeKeySet_OrderConsistency(t *testing.T) {
+	sk, ctx, _ := deps()
+	keyset := NewKeySet[time.Time](sk, 0, TimeKeyEncoder)
+
+	now := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
+	times := []time.Time{
+		now.Add(-1 * time.Hour),
+		now,
+		now.Add(1 * time.Hour),
+		now.Add(2 * time.Hour),
+		now.Add(-2 * time.Hour),
+	}
+
+	// Insert times into the keyset
+	for _, t := range times {
+		keyset.Insert(ctx, t)
+	}
+
+	// Sort times in ascending order
+	sortedTimesAsc := make([]time.Time, len(times))
+	copy(sortedTimesAsc, times)
+	sort.Slice(sortedTimesAsc, func(i, j int) bool {
+		return sortedTimesAsc[i].Before(sortedTimesAsc[j])
+	})
+
+	// Iterate over the keyset in ascending order
+	iterAsc := keyset.Iterate(ctx, Range[time.Time]{})
+	defer iterAsc.Close()
+
+	keysAsc := iterAsc.Keys()
+	require.Equal(t, len(times), len(keysAsc))
+
+	for i, k := range keysAsc {
+		expectedTime := sortedTimesAsc[i].Round(0)
+		actualTime := k.Round(0)
+		require.Equal(t, expectedTime.UnixNano(), actualTime.UnixNano())
+	}
+
+	// Sort times in descending order
+	sortedTimesDesc := make([]time.Time, len(times))
+	copy(sortedTimesDesc, times)
+	sort.Slice(sortedTimesDesc, func(i, j int) bool {
+		return sortedTimesDesc[i].After(sortedTimesDesc[j])
+	})
+
+	// Iterate over the keyset in descending order
+	iterDesc := keyset.Iterate(ctx, Range[time.Time]{}.Descending())
+	defer iterDesc.Close()
+
+	keysDesc := iterDesc.Keys()
+	require.Equal(t, len(times), len(keysDesc))
+
+	for i, k := range keysDesc {
+		expectedTime := sortedTimesDesc[i].Round(0)
+		actualTime := k.Round(0)
+		require.Equal(t, expectedTime.UnixNano(), actualTime.UnixNano())
+	}
+}
+
+func TestTimeKeySet_IterateRange(t *testing.T) {
+	sk, ctx, _ := deps()
+	keyset := NewKeySet[time.Time](sk, 0, TimeKeyEncoder)
+
+	now := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
+	times := []time.Time{
+		now.Add(1 * time.Second),
+		now.Add(2 * time.Second),
+		now.Add(3 * time.Second),
+		now.Add(4 * time.Second),
+		now.Add(5 * time.Second),
+	}
+
+	// Insert times into the keyset
+	for _, t := range times {
+		keyset.Insert(ctx, t)
+	}
+
+	// Define range from now.Add(2s) inclusive to now.Add(4s) exclusive
+	iter := keyset.Iterate(ctx, Range[time.Time]{}.
+		StartInclusive(now.Add(2*time.Second)).
+		EndExclusive(now.Add(4*time.Second)))
+	defer iter.Close()
+
+	expectedTimes := []time.Time{
+		now.Add(2 * time.Second),
+		now.Add(3 * time.Second),
+	}
+
+	keys := iter.Keys()
+	require.Equal(t, len(expectedTimes), len(keys))
+
+	for i, k := range keys {
+		expectedTime := expectedTimes[i].Round(0)
+		actualTime := k.Round(0)
+		require.Equal(t, expectedTime.UnixNano(), actualTime.UnixNano())
+	}
+}
+
+func TestTimeKeySet_SameTimeKeys(t *testing.T) {
+	sk, ctx, _ := deps()
+	keyset := NewKeySet[time.Time](sk, 0, TimeKeyEncoder)
+
+	now := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
+
+	// Insert the same time multiple times (should only be stored once in a set)
+	keyset.Insert(ctx, now)
+	keyset.Insert(ctx, now)
+	keyset.Insert(ctx, now)
+
+	iter := keyset.Iterate(ctx, Range[time.Time]{})
+	defer iter.Close()
+
+	keys := iter.Keys()
+	require.Equal(t, 1, len(keys))
+
+	expectedTime := now.Round(0)
+	actualTime := keys[0].Round(0)
+	require.Equal(t, expectedTime.UnixNano(), actualTime.UnixNano())
 }

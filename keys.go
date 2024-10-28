@@ -62,9 +62,8 @@ type timeKey struct{}
 func (timeKey) Stringify(t time.Time) string { return t.String() }
 
 func (timeKey) Encode(t time.Time) []byte {
-	// Use Unix milliseconds to reduce the size (8 bytes)
 	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(t.UnixMilli()))
+	binary.BigEndian.PutUint64(b, uint64(t.UnixNano()))
 	return b
 }
 
@@ -72,8 +71,8 @@ func (timeKey) Decode(b []byte) (int, time.Time) {
 	if len(b) < 8 {
 		panic("invalid time key")
 	}
-	ts := binary.BigEndian.Uint64(b[:8])
-	return 8, time.UnixMilli(int64(ts))
+	ts := int64(binary.BigEndian.Uint64(b[:8]))
+	return 8, time.Unix(0, ts).UTC()
 }
 
 type accAddressKey struct{}
