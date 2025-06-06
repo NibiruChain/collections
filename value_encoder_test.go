@@ -46,6 +46,12 @@ func (s *SuiteValueEncoder) TestAccAddressValueEncoder() {
 	})
 }
 
+func (s *SuiteValueEncoder) TestValAddressValueEncoder() {
+	s.Run("bijectivity", func() {
+		assertValueBijective(s.T(), ValAddressValueEncoder, sdk.ValAddress(secp256k1.GenPrivKey().PubKey().Address()))
+	})
+}
+
 func (s *SuiteValueEncoder) TestUint64ValueEncoder() {
 	s.Run("bijectivity", func() {
 		assertValueBijective(s.T(), Uint64ValueEncoder, 1000)
