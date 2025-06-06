@@ -13,6 +13,7 @@ import (
 
 var (
 	AccAddressValueEncoder ValueEncoder[sdk.AccAddress] = accAddressValueEncoder{}
+	ValAddressValueEncoder ValueEncoder[sdk.ValAddress] = valAddressValueEncoder{}
 	DecValueEncoder        ValueEncoder[math.LegacyDec] = decValueEncoder{}
 	IntValueEncoder        ValueEncoder[math.Int]       = intValueEncoder{}
 	Uint64ValueEncoder     ValueEncoder[uint64]         = uint64Value{}
@@ -83,6 +84,14 @@ func (a accAddressValueEncoder) Encode(value sdk.AccAddress) []byte    { return 
 func (a accAddressValueEncoder) Decode(b []byte) sdk.AccAddress        { return b }
 func (a accAddressValueEncoder) Stringify(value sdk.AccAddress) string { return value.String() }
 func (a accAddressValueEncoder) Name() string                          { return "sdk.AccAddress" }
+
+// ValAddressValueEncoder ValueEncoder[sdk.ValAddress]
+type valAddressValueEncoder struct{}
+
+func (a valAddressValueEncoder) Encode(value sdk.ValAddress) []byte    { return value }
+func (a valAddressValueEncoder) Decode(b []byte) sdk.ValAddress        { return b }
+func (a valAddressValueEncoder) Stringify(value sdk.ValAddress) string { return value.String() }
+func (a valAddressValueEncoder) Name() string                          { return "sdk.ValAddress" }
 
 // IntValueEncoder ValueEncoder[sdk.Int]
 
