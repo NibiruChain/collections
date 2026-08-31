@@ -15,7 +15,9 @@ var (
 	StringKeyEncoder KeyEncoder[string] = stringKey{}
 	// AccAddressKeyEncoder can be used to encode sdk.AccAddress keys.
 	AccAddressKeyEncoder KeyEncoder[sdk.AccAddress] = accAddressKey{}
-	// TimeKeyEncoder can be used to encode time.Time keys.
+	// TimeKeyEncoder encodes time.Time keys with nanosecond precision and
+	// chronological byte ordering. Its inclusive range is
+	// 1677-09-21T00:12:43.145224192Z through 2262-04-11T23:47:16.854775807Z.
 	TimeKeyEncoder KeyEncoder[time.Time] = timeKey{}
 	// Uint64KeyEncoder can be used to encode uint64 keys.
 	Uint64KeyEncoder KeyEncoder[uint64] = uint64Key{}
@@ -61,9 +63,31 @@ type timeKey struct{}
 
 func (timeKey) Stringify(t time.Time) string { return t.String() }
 
+const timeKeySignMask uint64 = 1 << 63
+
+var (
+	// UnixNano is only defined for timestamps whose nanosecond offset from the
+	// Unix epoch fits in an int64. Keep this constraint explicit so out-of-range
+	// values cannot silently wrap into a different key.
+	minTimeKey = time.Unix(-9223372037, 145224192).UTC()
+	maxTimeKey = time.Unix(9223372036, 854775807).UTC()
+)
+
 func (timeKey) Encode(t time.Time) []byte {
+	t = t.UTC()
+	if t.Before(minTimeKey) || t.After(maxTimeKey) {
+		panic(fmt.Errorf(
+			"time key must be between %s and %s: %s",
+			minTimeKey.Format(time.RFC3339Nano),
+			maxTimeKey.Format(time.RFC3339Nano),
+			t.Format(time.RFC3339Nano),
+		))
+	}
+
 	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(t.UnixNano()))
+	// Flipping the sign bit maps signed int64 order onto unsigned byte order,
+	// so lexicographic iteration remains chronological across the Unix epoch.
+	binary.BigEndian.PutUint64(b, uint64(t.UnixNano())^timeKeySignMask)
 	return b
 }
 
@@ -71,7 +95,7 @@ func (timeKey) Decode(b []byte) (int, time.Time) {
 	if len(b) < 8 {
 		panic("invalid time key")
 	}
-	ts := int64(binary.BigEndian.Uint64(b[:8]))
+	ts := int64(binary.BigEndian.Uint64(b[:8]) ^ timeKeySignMask)
 	return 8, time.Unix(0, ts).UTC()
 }
 

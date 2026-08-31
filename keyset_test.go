@@ -1,6 +1,7 @@
 package collections
 
 import (
+	"bytes"
 	"sort"
 	"testing"
 	"time"
@@ -8,6 +9,22 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func sortTimesAsc(times []time.Time) []time.Time {
+	sortedTimes := append([]time.Time(nil), times...)
+	sort.Slice(sortedTimes, func(i, j int) bool {
+		return sortedTimes[i].Before(sortedTimes[j])
+	})
+	return sortedTimes
+}
+
+func sortTimesDesc(times []time.Time) []time.Time {
+	sortedTimes := append([]time.Time(nil), times...)
+	sort.Slice(sortedTimes, func(i, j int) bool {
+		return sortedTimes[i].After(sortedTimes[j])
+	})
+	return sortedTimes
+}
 
 func TestKeySet(t *testing.T) {
 	sk, ctx, _ := deps()
@@ -87,10 +104,7 @@ func TestTimeKeySet_IterateAscending(t *testing.T) {
 		keyset.Insert(ctx, t)
 	}
 
-	// Sort times in ascending order
-	sort.Slice(times, func(i, j int) bool {
-		return times[i].Before(times[j])
-	})
+	times = sortTimesAsc(times)
 
 	// Iterate over the keyset in ascending order
 	iter := keyset.Iterate(ctx, Range[time.Time]{})
@@ -126,10 +140,7 @@ func TestTimeKeySet_IterateDescending(t *testing.T) {
 		keyset.Insert(ctx, t)
 	}
 
-	// Sort times in descending order
-	sort.Slice(times, func(i, j int) bool {
-		return times[i].After(times[j])
-	})
+	times = sortTimesDesc(times)
 
 	// Iterate over the keyset in descending order
 	iter := keyset.Iterate(ctx, Range[time.Time]{}.Descending())
@@ -154,6 +165,34 @@ func TestTimeKeyEncoder_EncodeDecode(t *testing.T) {
 	require.Equal(t, now.UnixNano(), decoded.UnixNano())
 }
 
+func TestTimeKeyEncoder_BoundsAndOrdering(t *testing.T) {
+	times := []time.Time{
+		minTimeKey,
+		time.Unix(-1, 999999999).UTC(),
+		time.Unix(0, 0).UTC(),
+		maxTimeKey,
+	}
+
+	for i, timestamp := range times {
+		encoded := TimeKeyEncoder.Encode(timestamp)
+		consumed, decoded := TimeKeyEncoder.Decode(encoded)
+		require.Equal(t, 8, consumed)
+		require.True(t, timestamp.Equal(decoded))
+		if i > 0 {
+			require.Less(t, bytes.Compare(TimeKeyEncoder.Encode(times[i-1]), encoded), 0)
+		}
+	}
+}
+
+func TestTimeKeyEncoder_RejectsOutOfRangeTimes(t *testing.T) {
+	require.Panics(t, func() {
+		TimeKeyEncoder.Encode(minTimeKey.Add(-time.Nanosecond))
+	})
+	require.Panics(t, func() {
+		TimeKeyEncoder.Encode(maxTimeKey.Add(time.Nanosecond))
+	})
+}
+
 func TestTimeKeySet_OrderConsistency(t *testing.T) {
 	sk, ctx, _ := deps()
 	keyset := NewKeySet[time.Time](sk, 0, TimeKeyEncoder)
@@ -172,12 +211,7 @@ func TestTimeKeySet_OrderConsistency(t *testing.T) {
 		keyset.Insert(ctx, t)
 	}
 
-	// Sort times in ascending order
-	sortedTimesAsc := make([]time.Time, len(times))
-	copy(sortedTimesAsc, times)
-	sort.Slice(sortedTimesAsc, func(i, j int) bool {
-		return sortedTimesAsc[i].Before(sortedTimesAsc[j])
-	})
+	sortedTimesAsc := sortTimesAsc(times)
 
 	// Iterate over the keyset in ascending order
 	iterAsc := keyset.Iterate(ctx, Range[time.Time]{})
@@ -192,12 +226,7 @@ func TestTimeKeySet_OrderConsistency(t *testing.T) {
 		require.Equal(t, expectedTime.UnixNano(), actualTime.UnixNano())
 	}
 
-	// Sort times in descending order
-	sortedTimesDesc := make([]time.Time, len(times))
-	copy(sortedTimesDesc, times)
-	sort.Slice(sortedTimesDesc, func(i, j int) bool {
-		return sortedTimesDesc[i].After(sortedTimesDesc[j])
-	})
+	sortedTimesDesc := sortTimesDesc(times)
 
 	// Iterate over the keyset in descending order
 	iterDesc := keyset.Iterate(ctx, Range[time.Time]{}.Descending())
